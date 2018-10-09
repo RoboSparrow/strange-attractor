@@ -1,7 +1,8 @@
-
 import Particle from '../space/Particle';
 import Matrix4x4, { idendityMatrix } from '../space/Matrix4x4';
+
 import animation from '../animate';
+import initCanvas from '../canvas';
 
 const STATE = {
     // animation types: continous, mousemove
@@ -83,7 +84,7 @@ const update = function(context2d, particleChain, matrix) {
 
     const { width, height } = context2d.canvas;
 
-    context2d.fillRect(0, 0, width, width);
+    context2d.fillRect(0, 0, width, height);
     const imageData = context2d.getImageData(0, 0, width, height);
 
     const translationMatrix = Matrix4x4.translate(0, 0, 10);
@@ -139,17 +140,6 @@ const update = function(context2d, particleChain, matrix) {
     context2d.putImageData(imageData, 0, 0);
 };
 
-const createCanvas = function(container, width = 550, height = 400) {
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-
-    container.appendChild(canvas);
-
-    return canvas;
-};
-
 const initcontext2d = function(canvas) {
     const { width, height } = canvas;
 
@@ -161,7 +151,7 @@ const initcontext2d = function(canvas) {
 
 const init = function(container = document.body, bindState = {}) {
 
-    const canvas = createCanvas(container);
+    const canvas = initCanvas(container);
     const context2d = initcontext2d(canvas);
     const particleChain = createParticleChain();
     const matrix = idendityMatrix();
@@ -184,4 +174,4 @@ const init = function(container = document.body, bindState = {}) {
 
 const getAnimationState = animation.getState;
 
-export { init as default, getState, getAnimationState };
+export { init, getState, getAnimationState };
