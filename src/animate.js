@@ -8,6 +8,7 @@ const getState = function() {
 };
 
 let prev = 0;
+let requestId = -1;
 
 const update = function(callback) {
     const { fps } = state;
@@ -21,16 +22,24 @@ const update = function(callback) {
         state.count += 1;
     }
 
+    requestId = requestAnimationFrame(update.bind(null, callback));
+};
 
-    requestAnimationFrame(update.bind(null, callback));
+const cancel = function() {
+    if (requestId > 0) {
+        cancelAnimationFrame(requestId);
+    }
+    requestId = -1;
 };
 
 const init = function(callback, options = {}) {
+    cancel();
     Object.assign(state, options);
-    requestAnimationFrame(update.bind(null, callback));
+    requestId = requestAnimationFrame(update.bind(null, callback));
 };
 
 export default {
     init,
+    cancel,
     getState,
 };
