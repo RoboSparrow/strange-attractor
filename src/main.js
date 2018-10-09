@@ -1,51 +1,57 @@
 /* global m */
+import StrangeAttractor from './components/StrangeAttractor';
+import HenonMap from './components/HenonMap';
 
-import init, { getState, getAnimationState } from './strange-attractor/index';
+const Button = {
+    view: function(vnode) {
+        const { href, title } = vnode.attrs;
+        const current = m.route.get();
 
-//data binding helper function
-const formState = getState();
+        const cls = (current === href) ? 'mui-btn--accent' : 'mui-btn--primary';
+        return m('a', {
+            href,
+            oncreate: m.route.link,
+            className: `mui-btn mui-btn--small ${cls}`,
+        }, title);
+    },
 
-const binds = function(data, prop) {
-    return {
-        value: data[prop],
-        onchange: function(e) {
-            data[e.target.name] = parseInt(e.target.value, 10);
-            e.preventDefault();
-        },
-
-    };
 };
 
-const Dev = {
-    view: vnode => m('pre', {}, `${JSON.stringify(vnode.attrs.formState)}`)
-};
-
-const Fps = {
-    view: vnode => m('pre', {}, `fps: ${vnode.attrs.animationState.fps}`)
-};
-
-const Slider = function(selector, bindingData, bindingProp, label) {
-    return m('.mui-input-range', [
-        m(selector, binds(bindingData, bindingProp)),
-        m('label', {}, [
-            `${label || bindingProp} ${bindingData[bindingProp]}`,
-        ]),
-    ]);
-};
-
-const App = {
-    view: () => m('form', { className: 'mui-form' }, [
-        m(Fps, { animationState: getAnimationState() }),
-        Slider('input[name=focalLength][type=range][min=0][max=1000]', formState, 'focalLength'),
-        Slider('input[name=pixelDensity][type=range][min=5][max=255]', formState, 'pixelDensity'),
-        m(Dev, { formState })
-    ]),
+const Menu = {
+    view: function() {
+        return m('nav', { className: 'mui-panel' }, [
+            m(Button, { href: '/', title: 'Home' }),
+            m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),
+            m(Button, { href: '/henon-map', title: 'Henon Map' }),
+        ]);
+    },
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const screen = document.getElementById('screen');
-    init(screen, formState);
 
+    const screen = document.getElementById('screen');
     const root = document.getElementById('root');
-    m.mount(root, App);
+
+    m.route(root, '/strange-attractor', {
+
+        '/strange-attractor': {
+            render: function() {
+                return [
+                    m(Menu),
+                    m(StrangeAttractor, { screen }),
+                ];
+            }
+        },
+
+        '/henon-map': {
+            render: function() {
+                return [
+                    m(Menu),
+                    m(HenonMap, { screen }),
+                ];
+            }
+        },
+
+    });
+
 });
