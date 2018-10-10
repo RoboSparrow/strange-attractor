@@ -1,4 +1,5 @@
 /**
+ * @see http://mathworld.wolfram.com/StrangeAttractor.html
  * @see https://mrdoob.com/#/107/strange_attractor
  */
 
@@ -178,8 +179,7 @@ const plot = function(ctx) {
     animation.init(() => update(ctx, chain, matrix), { fps: 32 });
 };
 
-const init = function(container = document.body) {
-
+const init = function(container) {
     const canvas = initCanvas(container);
     const ctx = initcontext2d(canvas);
 

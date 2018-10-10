@@ -1,6 +1,10 @@
 const id = 'screen-canvas';
 
-export default function(container, width = 550, height = 400) {
+export default function(container = document.body, width = 550, height = 400) {
+
+    if (typeof container === 'string') {
+        container = document.querySelector(container);
+    }
 
     const exists = document.getElementById(id);
     if (exists) {

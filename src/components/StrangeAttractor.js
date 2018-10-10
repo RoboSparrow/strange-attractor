@@ -45,7 +45,7 @@ const StringCheckbox = function(stringAttrs, plotter, prop, value, label) {
                 value,
                 onchange: e => handleChange(e, 'string', plotter),
             }),
-            [ m('span', { style: 'padding: 0 1em;' }, label || value) ],
+            [m('span', { style: 'padding: 0 1em;' }, label || value)],
         ]),
     ]);
 };
@@ -63,10 +63,8 @@ class StrangeAttractor {
         this.formState = {};
     }
 
-    oninit(vnode) {
-        const { screen } = vnode.attrs;
-
-        this.plotter = init(screen, this.formState);
+    oninit() {
+        this.plotter = init('#plotter', this.formState);
         this.plotter.plot();
 
         this.formState = this.plotter.getState();

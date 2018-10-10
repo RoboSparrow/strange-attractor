@@ -48,10 +48,8 @@ class GingerbreadmanMap {
         this.formState = {};
     }
 
-    oninit(vnode) {
-        const { screen } = vnode.attrs;
-
-        this.plotter = init(screen, this.formState);
+    oninit() {
+        this.plotter = init('#plotter', this.formState);
         this.plotter.plot();
 
         this.formState = this.plotter.getState();

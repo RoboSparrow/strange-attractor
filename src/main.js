@@ -29,40 +29,26 @@ const Menu = {
     },
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+const masonry = function(leftComponent, rightComponent) {
+    return {
+        view: () => m('main', [
+            m('header', m(Menu)),
+            m('main.mui-container-fluid', [
+                m('.mui-col-md-6', m(leftComponent)),
+                m('.mui-col-md-6', m(rightComponent)),
+            ]),
+            m('footer'),
+        ]),
+    };
+};
 
-    const screen = document.getElementById('screen');
-    const root = document.getElementById('root');
+document.addEventListener('DOMContentLoaded', () => {
+    const root = document.body;
 
     m.route(root, '/strange-attractor', {
-
-        '/strange-attractor': {
-            render: function() {
-                return [
-                    m(Menu),
-                    m(StrangeAttractor, { screen }),
-                ];
-            }
-        },
-
-        '/henon-map': {
-            render: function() {
-                return [
-                    m(Menu),
-                    m(HenonMap, { screen }),
-                ];
-            }
-        },
-
-        '/gingerbreadman-map': {
-            render: function() {
-                return [
-                    m(Menu),
-                    m(GingerbreadmanMap, { screen }),
-                ];
-            }
-        },
-
+        '/strange-attractor': masonry('#plotter', StrangeAttractor),
+        '/henon-map': masonry('#plotter', HenonMap),
+        '/gingerbreadman-map': masonry('#plotter',GingerbreadmanMap),
     });
 
 });
