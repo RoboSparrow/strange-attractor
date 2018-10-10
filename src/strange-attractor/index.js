@@ -37,7 +37,7 @@ const createParticleChain = function(max = MaxParticles) {
     return chain;
 };
 
-const applyAttractor = function(particleChain) {
+const applyAttractor = function(chain) {
     const scale = 40.0;
 
     const _a = 1.111;
@@ -53,7 +53,7 @@ const applyAttractor = function(particleChain) {
     let my = 0.0;
     let mz = 0.0;
 
-    let particle = particleChain;
+    let particle = chain;
 
     while (particle !== null) {
 
@@ -74,7 +74,7 @@ const applyAttractor = function(particleChain) {
 
 };
 
-const update = function(context2d, particleChain, matrix) {
+const update = function(ctx, chain, matrix) {
 
     const { count } = animation.getState();
     const { targetX, targetY, focalLength, pixelDensity } = getState();
@@ -82,10 +82,10 @@ const update = function(context2d, particleChain, matrix) {
     const transformX = (STATE.animate === 'mousemove') ? targetX : count;
     const transformY = (STATE.animate === 'mousemove') ? targetY : count;
 
-    const { width, height } = context2d.canvas;
+    const { width, height } = ctx.canvas;
 
-    context2d.fillRect(0, 0, width, height);
-    const imageData = context2d.getImageData(0, 0, width, height);
+    ctx.fillRect(0, 0, width, height);
+    const imageData = ctx.getImageData(0, 0, width, height);
 
     const translationMatrix = Matrix4x4.translate(0, 0, 10);
 
@@ -108,7 +108,7 @@ const update = function(context2d, particleChain, matrix) {
     const maxIndex = imageData.data.length; //or: (width * height) * 4
     let index = maxIndex;
 
-    let particle = particleChain;
+    let particle = chain;
 
     while (particle !== null) {
 
@@ -137,26 +137,26 @@ const update = function(context2d, particleChain, matrix) {
         particle = particle.next;
     }
 
-    context2d.putImageData(imageData, 0, 0);
+    ctx.putImageData(imageData, 0, 0);
 };
 
 const initcontext2d = function(canvas) {
     const { width, height } = canvas;
 
-    const context2d = canvas.getContext('2d');
-    context2d.fillStyle = '#101010';
-    context2d.fillRect(0, 0, width, height);
-    return context2d;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#101010';
+    ctx.fillRect(0, 0, width, height);
+    return ctx;
 };
 
 const init = function(container = document.body, bindState = {}) {
 
     const canvas = initCanvas(container);
-    const context2d = initcontext2d(canvas);
-    const particleChain = createParticleChain();
+    const ctx = initcontext2d(canvas);
+    const chain = createParticleChain();
     const matrix = idendityMatrix();
 
-    applyAttractor(particleChain);
+    applyAttractor(chain);
 
     canvas.addEventListener('mousemove', (e) => {
         if (STATE.animate !== 'mousemove') {
@@ -167,7 +167,7 @@ const init = function(container = document.body, bindState = {}) {
         STATE.targetY += (e.clientY - STATE.targetY) * 0.1;
     }, false);
 
-    animation.init(() => update(context2d, particleChain, matrix), { fps: 32 });
+    animation.init(() => update(ctx, chain, matrix), { fps: 32 });
 
     Object.assign(bindState, STATE);
 };
