@@ -9,20 +9,35 @@ import animation from '../animate';
 
 import initCanvas from '../canvas';
 
-const STATE = {
+const Defaults = Object.freeze({
+    // henon map algorithm params
+    alpha: 1.4,
+    beta: 0.3,
+    // quantity
+    maxParticles: 3000,
+    scale: 100,
+});
+
+const State = Object.assign({}, Defaults);
+
+const resetState = function() {
+    return Object.assign(State, Defaults);
 };
 
 const getState = function() {
-    return STATE;
+    return Object.assign({}, State);
 };
 
-const MaxParticles = 3000;
+const setState = function(updates) {
+    return Object.assign(State, updates);
+};
 
-const createParticleChain = function(max = MaxParticles) {
+const createParticleChain = function() {
     const chain = [];
     let count = 0;
+    const { maxParticles } = getState();
 
-    while (count < max) {
+    while (count < maxParticles) {
         chain.push(new Particle());
         count += 1;
     }
@@ -43,8 +58,7 @@ const applyAttractor = function(chain) {
     let i = 0;
     const max = chain.length;
 
-    const alpha = 1.4;
-    const beta = 0.3;
+    const { alpha, beta } = getState();
 
     while (i < max) {
 
@@ -77,7 +91,7 @@ const applyAttractor = function(chain) {
 
         i += 1;
     }
-    console.log(chain);
+
     return chain;
 };
 
@@ -90,10 +104,12 @@ const locatePixel2D = function(x, y, width) {
 const update = function(ctx, chain) {
 
     const { width, height } = ctx.canvas;
+
+    ctx.fillRect(0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
 
     // toto to state
-    const scale = 100;
+    const { scale } = getState();
     const translateCenter = (width > height) ? height / 2 : width / 2;
 
     let particle;
@@ -120,7 +136,7 @@ const update = function(ctx, chain) {
         i += 1;
     }
 
-    // fillcanvas
+    // fill canvas
     ctx.putImageData(imageData, 0, 0);
 };
 
@@ -133,29 +149,30 @@ const initcontext2d = function(canvas) {
     return ctx;
 };
 
-const init = function(container = document.body, bindState = {}) {
+const plot = function(ctx) {
     let chain;
-
-    const canvas = initCanvas(container);
-    const ctx = initcontext2d(canvas);
 
     chain = createParticleChain();
     chain = applyAttractor(chain);
 
-    canvas.addEventListener('mousemove', (e) => {
-        if (STATE.animate !== 'mousemove') {
-            return;
-        }
-
-        STATE.targetX += (e.clientX - STATE.targetX) * 0.1;
-        STATE.targetY += (e.clientY - STATE.targetY) * 0.1;
-    }, false);
-
     animation.init(() => update(ctx, chain), { fps: 32 });
-
-    Object.assign(bindState, STATE);
 };
 
-const getAnimationState = animation.getState;
+const init = function(container = document.body) {
+    const canvas = initCanvas(container);
+    const ctx = initcontext2d(canvas);
 
-export { init, getState, getAnimationState };
+    return {
+        getState,
+        reset: () => {
+            resetState();
+            plot(ctx);
+        },
+        plot: (updates) => {
+            setState(updates);
+            plot(ctx);
+        },
+    };
+};
+
+export { init, animation };
