@@ -1,49 +1,94 @@
 /* global m */
-import { init, getState, getAnimationState } from '../strange-attractor';
+import { init, animation } from '../strange-attractor';
 import Dev from './Dev';
 
 //data binding helper function
-const binds = function(data, prop) {
-    return {
-        value: data[prop],
-        onchange: function(e) {
-            data[e.target.name] = parseInt(e.target.value, 10);
-            e.preventDefault();
-        },
+const handleChange = function(e, type, plotter) {
+    e.preventDefault();
 
-    };
+    let { name, value } = e.target;// eslint-disable-line prefer-const
+    switch (type) {
+        case 'number':
+            value = parseInt(value, 10);
+            break;
+        default:
+            // nothing
+    }
+
+    plotter.plot({
+        [name]: value,
+    });
 };
 
-const Slider = function(selector, bindingData, bindingProp, label) {
+const Slider = function(stringAttrs, plotter, prop, label) {
+    const selector = `input[name=${prop}][type=range]${stringAttrs}`;
+    const value = plotter.getState()[prop];
+
     return m('.mui-input-range', [
-        m(selector, binds(bindingData, bindingProp)),
+        m(selector, {
+            value,
+            onchange: e => handleChange(e, 'number', plotter),
+        }),
         m('label', {}, [
-            `${label || bindingProp} ${bindingData[bindingProp]}`,
+            `${label || prop} ${value}`,
         ]),
     ]);
+};
+
+const StringCheckbox = function(stringAttrs, plotter, prop, value, label) {
+    const selector = `input[name=${prop}][type=checkbox]${stringAttrs}`;
+    const checked = value === plotter.getState()[prop];
+    return m('.mui-checkbox', [
+        m('label', {}, [
+            m(selector, {
+                checked,
+                value,
+                onchange: e => handleChange(e, 'string', plotter),
+            }),
+            [ m('span', { style: 'padding: 0 1em;' }, label || value) ],
+        ]),
+    ]);
+};
+
+const ResetButton = function(plotter) {
+    return m('button.mui-btn.mui-btn--small.mui-btn--primary', { onclick: (e) => {
+        e.preventDefault();
+        plotter.reset();
+    } }, 'Reset');
 };
 
 class StrangeAttractor {
 
     constructor() {
-        this.formState = getState();
+        this.formState = {};
     }
 
     oninit(vnode) {
         const { screen } = vnode.attrs;
-        init(screen, this.formState);
+
+        this.plotter = init(screen, this.formState);
+        this.plotter.plot();
+
+        this.formState = this.plotter.getState();
     }
 
     view() {
-        const { formState } = this;
+        const { plotter } = this;
+        const state = plotter.getState();
 
         return m('form', { className: 'mui-form' }, [
-            Slider('input[name=focalLength][type=range][min=0][max=1000]', formState, 'focalLength'),
-            Slider('input[name=pixelDensity][type=range][min=5][max=255]', formState, 'pixelDensity'),
+            Slider('[type=range][min=0][max=1000]', plotter, 'focalLength'),
+            Slider('[type=range][min=5][max=255]', plotter, 'pixelDensity'),
+            m('.mui-form--inline', [
+                StringCheckbox('[name=animationMode][type=radio]', plotter, 'animationMode', 'mousemove', 'mouse rotation'),
+                StringCheckbox('[name=animationMode][type=radio]', plotter, 'animationMode', 'continous', 'continous rotation'),
+            ]),
+            m('hr'),
+            ResetButton(plotter),
             m(Dev, {
                 data: {
-                    formState,
-                    fps: getAnimationState().fps
+                    plotter: state,
+                    fps: animation.getState().fps
                 }
             }),
         ]);

@@ -5,7 +5,7 @@
  */
 
 import Particle from '../space/Particle';
-import animation from '../animate';
+import animation from '../animation';
 
 import initCanvas from '../canvas';
 

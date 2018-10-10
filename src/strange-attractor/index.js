@@ -1,12 +1,20 @@
+/**
+ * @see https://mrdoob.com/#/107/strange_attractor
+ */
+
 import Particle from '../space/Particle';
 import Matrix4x4, { idendityMatrix } from '../space/Matrix4x4';
 
-import animation from '../animate';
+import animation from '../animation';
 import initCanvas from '../canvas';
 
-const STATE = {
+// cool
+// "focalLength": 119, "pixelDensity": 94
+
+
+const Defaults = Object.freeze({
     // animation types: continous, mousemove
-    animate: 'continous',
+    animationMode: 'continous',
 
     // mousemove coords
     targetX: 0,
@@ -14,10 +22,20 @@ const STATE = {
 
     focalLength: 400,
     pixelDensity: 32,
+});
+
+const State = Object.assign({}, Defaults);
+
+const resetState = function() {
+    return Object.assign(State, Defaults);
 };
 
 const getState = function() {
-    return STATE;
+    return Object.assign({}, State);
+};
+
+const setState = function(updates) {
+    return Object.assign(State, updates);
 };
 
 const MaxParticles = 1024 * 300;
@@ -72,15 +90,16 @@ const applyAttractor = function(chain) {
         particle = particle.next;
     }
 
+    return chain;
 };
 
 const update = function(ctx, chain, matrix) {
 
     const { count } = animation.getState();
-    const { targetX, targetY, focalLength, pixelDensity } = getState();
+    const { targetX, targetY, focalLength, pixelDensity, animationMode } = getState();
 
-    const transformX = (STATE.animate === 'mousemove') ? targetX : count;
-    const transformY = (STATE.animate === 'mousemove') ? targetY : count;
+    const transformX = (animationMode === 'mousemove') ? targetX : count;
+    const transformY = (animationMode === 'mousemove') ? targetY : count;
 
     const { width, height } = ctx.canvas;
 
@@ -149,29 +168,45 @@ const initcontext2d = function(canvas) {
     return ctx;
 };
 
-const init = function(container = document.body, bindState = {}) {
+const plot = function(ctx) {
+    let chain;
+    const matrix = idendityMatrix(); // todo move out?
+
+    chain = createParticleChain();
+    chain = applyAttractor(chain);
+
+    animation.init(() => update(ctx, chain, matrix), { fps: 32 });
+};
+
+const init = function(container = document.body) {
 
     const canvas = initCanvas(container);
     const ctx = initcontext2d(canvas);
-    const chain = createParticleChain();
-    const matrix = idendityMatrix();
-
-    applyAttractor(chain);
 
     canvas.addEventListener('mousemove', (e) => {
-        if (STATE.animate !== 'mousemove') {
+        const { animationMode, targetX, targetY } = getState();
+        if (animationMode !== 'mousemove') {
             return;
         }
 
-        STATE.targetX += (e.clientX - STATE.targetX) * 0.1;
-        STATE.targetY += (e.clientY - STATE.targetY) * 0.1;
+        setState({
+            targetX: (e.clientX - targetX) * 0.1,
+            targetY: (e.clientY - targetY) * 0.1,
+        });
+
     }, false);
 
-    animation.init(() => update(ctx, chain, matrix), { fps: 32 });
-
-    Object.assign(bindState, STATE);
+    return {
+        getState,
+        reset: () => {
+            resetState();
+            plot(ctx);
+        },
+        plot: (updates) => {
+            setState(updates);
+            plot(ctx);
+        },
+    };
 };
 
-const getAnimationState = animation.getState;
-
-export { init, getState, getAnimationState };
+export { init, animation };

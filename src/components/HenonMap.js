@@ -46,7 +46,6 @@ class HenonMap {
 
     constructor() {
         this.formState = {};
-        this.ani = null;
     }
 
     oninit(vnode) {
@@ -71,7 +70,7 @@ class HenonMap {
             ResetButton(plotter),
             m(Dev, {
                 data: {
-                    state: plotter.getState(),
+                    plotter: plotter.getState(),
                 }
             }),
         ]);
