@@ -1,5 +1,5 @@
 /* global m */
-import { init, animation } from '../strange-attractor';
+import { init } from '../gingerbreadman-map';
 import Dev from './Dev';
 
 //data binding helper function
@@ -35,21 +35,6 @@ const Slider = function(stringAttrs, plotter, prop, label) {
     ]);
 };
 
-const StringCheckbox = function(stringAttrs, plotter, prop, value, label) {
-    const selector = `input[name=${prop}][type=checkbox]${stringAttrs}`;
-    const checked = value === plotter.getState()[prop];
-    return m('.mui-checkbox', [
-        m('label', {}, [
-            m(selector, {
-                checked,
-                value,
-                onchange: e => handleChange(e, 'string', plotter),
-            }),
-            [ m('span', { style: 'padding: 0 1em;' }, label || value) ],
-        ]),
-    ]);
-};
-
 const ResetButton = function(plotter) {
     return m('button.mui-btn.mui-btn--small.mui-btn--primary', { onclick: (e) => {
         e.preventDefault();
@@ -57,7 +42,7 @@ const ResetButton = function(plotter) {
     } }, 'Reset');
 };
 
-class StrangeAttractor {
+class GingerbreadmanMap {
 
     constructor() {
         this.formState = {};
@@ -74,25 +59,19 @@ class StrangeAttractor {
 
     view() {
         const { plotter } = this;
-        const state = plotter.getState();
 
         return m('form', { className: 'mui-form' }, [
-            Slider('[type=range][min=1][max=300]', plotter, 'focalLength'),
-            Slider('[type=range][min=5][max=255]', plotter, 'pixelDensity'),
-            m('.mui-form--inline', [
-                StringCheckbox('[name=animationMode][type=radio]', plotter, 'animationMode', 'mousemove', 'mouse rotation'),
-                StringCheckbox('[name=animationMode][type=radio]', plotter, 'animationMode', 'continous', 'continous rotation'),
-            ]),
+            Slider('[min=100][max=10000]', plotter, 'maxParticles'),
+            Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
             ResetButton(plotter),
             m(Dev, {
                 data: {
-                    plotter: state,
-                    fps: animation.getState().fps
+                    plotter: plotter.getState(),
                 }
             }),
         ]);
     }
 }
 
-export default StrangeAttractor;
+export default GingerbreadmanMap;

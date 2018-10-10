@@ -1,6 +1,7 @@
 /* global m */
 import StrangeAttractor from './components/StrangeAttractor';
 import HenonMap from './components/HenonMap';
+import GingerbreadmanMap from './components/GingerbreadmanMap';
 
 const Button = {
     view: function(vnode) {
@@ -23,6 +24,7 @@ const Menu = {
             m(Button, { href: '/', title: 'Home' }),
             m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),
             m(Button, { href: '/henon-map', title: 'Henon Map' }),
+            m(Button, { href: '/gingerbreadman-map', title: 'Gingerbreadman Map' }),
         ]);
     },
 };
@@ -48,6 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return [
                     m(Menu),
                     m(HenonMap, { screen }),
+                ];
+            }
+        },
+
+        '/gingerbreadman-map': {
+            render: function() {
+                return [
+                    m(Menu),
+                    m(GingerbreadmanMap, { screen }),
                 ];
             }
         },

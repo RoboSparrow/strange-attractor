@@ -20,7 +20,7 @@ const Defaults = Object.freeze({
     targetX: 0,
     targetY: 0,
 
-    focalLength: 400,
+    focalLength: 10,
     pixelDensity: 32,
 });
 
