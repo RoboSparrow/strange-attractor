@@ -2,6 +2,7 @@
 import StrangeAttractor from './components/StrangeAttractor';
 import HenonMap from './components/HenonMap';
 import GingerbreadmanMap from './components/GingerbreadmanMap';
+import SprottsQuadraticMaps from './components/SprottsQuadraticMaps';
 
 const Button = {
     view: function(vnode) {
@@ -25,6 +26,7 @@ const Menu = {
             m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),
             m(Button, { href: '/henon-map', title: 'Henon Map' }),
             m(Button, { href: '/gingerbreadman-map', title: 'Gingerbreadman Map' }),
+            m(Button, { href: '/sprotts-quadratic-maps', title: 'Sprott\'s Quadratic Maps' }),
         ]);
     },
 };
@@ -48,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     m.route(root, '/strange-attractor', {
         '/strange-attractor': masonry('#plotter', StrangeAttractor),
         '/henon-map': masonry('#plotter', HenonMap),
-        '/gingerbreadman-map': masonry('#plotter',GingerbreadmanMap),
+        '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
+        '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
     });
 
 });
