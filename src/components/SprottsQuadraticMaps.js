@@ -25,6 +25,14 @@ class RandomPattern {
         this.pattern = '';
     }
 
+    oninit(vnode) {
+        this.pattern = vnode.attrs.plotter.getState().pattern;
+    }
+    // todo only updates after second click -> separate textfield in extra component
+    onupdate(vnode) {
+        this.pattern = vnode.attrs.plotter.getState().pattern;
+    }
+
     handleChange(e, plotter) {
         e.preventDefault();
 
@@ -36,9 +44,12 @@ class RandomPattern {
 
     view(vnode) {
         const { plotter } = vnode.attrs;
-        return m('', [
-            m('button', { onclick: e => this.handleChange(e, plotter) }, 'random pattern')
-        ], this.pattern);
+        return m('.mui-form--inline', [
+            m('mui-textfield', [
+                m('input[type=text]', { value: this.pattern }),
+                m('a', { onclick: e => this.handleChange(e, plotter) }, 'random pattern'),
+            ]),
+        ]);
     }
 }
 
@@ -100,8 +111,9 @@ class SprottsQuadraticMaps {
             Slider('[min=100][max=10000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
-            PatternsList(plotter),
             m(RandomPattern, { plotter }),
+            m('hr'),
+            PatternsList(plotter),
             m('hr'),
             ResetButton(plotter),
             m(Dev, {
