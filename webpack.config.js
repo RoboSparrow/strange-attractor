@@ -12,7 +12,8 @@ module.exports = {
 
     output: {
         filename: 'main.js',
-        path: path.resolve(__dirname, 'dist')
+        path: path.resolve(__dirname, 'dist'),
+        globalObject: `(typeof self !== 'undefined' ? self : this)`, // temp fix fhttps://github.com/webpack/webpack/issues/6642
     },
 
     resolve: {
@@ -31,7 +32,11 @@ module.exports = {
             // css-loader
             test: /\.css$/,
             use: [ 'style-loader', 'css-loader' ]
-        }],
+        }, {
+            // worker-loader
+            test: /\.worker\.js$/,
+            use: { loader: 'worker-loader' },
+      }],
     },
 
     devtool: "source-map",

@@ -60,7 +60,7 @@ class GingerbreadmanMap {
         const { plotter } = this;
 
         return m('form', { className: 'mui-form' }, [
-            Slider('[min=100][max=10000]', plotter, 'maxParticles'),
+            Slider('[min=100][max=60000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
             ResetButton(plotter),

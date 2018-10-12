@@ -1,92 +1,21 @@
 /**
  * @see http://mathworld.wolfram.com/GingerbreadmanMap.html
  */
-
-import Particle from '../space/Particle';
+import Worker from './compute.worker';
 import animation from '../animation';
 
 import initCanvas from '../canvas';
+import StateProvider from '../state';
 
-const Defaults = Object.freeze({
+// state
+
+const State = new StateProvider({
     // quantity
     maxParticles: 30000,
     scale: 30,
 });
 
-const State = Object.assign({}, Defaults);
-
-const resetState = function() {
-    return Object.assign(State, Defaults);
-};
-
-const getState = function() {
-    return Object.assign({}, State);
-};
-
-const setState = function(updates) {
-    return Object.assign(State, updates);
-};
-
-const createParticleChain = function() {
-    const chain = [];
-    let count = 0;
-    const { maxParticles } = getState();
-
-    while (count < maxParticles) {
-        chain.push(new Particle());
-        count += 1;
-    }
-
-    return chain;
-};
-
-const applyAttractor = function(chain) {
-    const scale = 1.0;
-
-    let x = 0.0;
-    let y = 0.0;
-    let z = 0.0;
-
-    let particle;
-    let prev = null;
-
-    let i = 0;
-    const max = chain.length;
-
-    while (i < max) {
-
-        particle = chain[i];
-
-        if (i === 0) {
-
-            x = 0.9237274331240513; // Math.random();
-            y = -0.0629007300535831; //-Math.random();
-            z = 0;
-
-        } else {
-
-            prev = chain[i - 1];
-
-            x = 1.0 - prev.y + Math.abs(prev.x);
-            y = prev.x;
-            z = 1 * particle.z;
-
-            // prevent infinity
-            if (Math.abs(x) > 1e6 || Math.abs(y) > 1e6) {
-                x = 0;
-                y = 0;
-            }
-        }
-
-        particle.x = x * scale;
-        particle.y = y * scale;
-        particle.z = z * scale;
-
-        i += 1;
-    }
-
-    return chain;
-};
+// rendering
 
 const locatePixel2D = function(x, y, width) {
     return y * (width * 4) + x * 4;
@@ -102,7 +31,7 @@ const update = function(ctx, chain) {
     const imageData = ctx.getImageData(0, 0, width, height);
 
     // toto to state
-    const { scale } = getState();
+    const { scale } = State.get();
     const translateCenter = (width > height) ? height / 2 : width / 2;
 
     let particle;
@@ -133,6 +62,39 @@ const update = function(ctx, chain) {
     ctx.putImageData(imageData, 0, 0);
 };
 
+// algorithm
+
+const compute = function() {
+
+    const state = State.get();
+
+    return new Promise((resolve, reject) => {
+        const worker = new Worker();
+
+        worker.addEventListener('message', (e) => {
+            // todo track progress
+            const { chain } = e.data;
+            resolve(chain);
+        });
+
+        worker.addEventListener('error', (error) => {
+            reject(error);
+        });
+
+        worker.postMessage({ state });
+    });
+
+};
+
+// plotting
+
+const plot = function(ctx) {
+    return compute().then((chain) => {
+        animation.init(() => update(ctx, chain), { fps: 32 });
+        return true;
+    });
+};
+
 const initcontext2d = function(canvas) {
     const { width, height } = canvas;
 
@@ -142,27 +104,18 @@ const initcontext2d = function(canvas) {
     return ctx;
 };
 
-const plot = function(ctx) {
-    let chain;
-
-    chain = createParticleChain();
-    chain = applyAttractor(chain);
-
-    animation.init(() => update(ctx, chain), { fps: 32 });
-};
-
 const init = function(container = document.body) {
     const canvas = initCanvas(container);
     const ctx = initcontext2d(canvas);
 
     return {
-        getState,
+        getState: State.get,
         reset: () => {
-            resetState();
+            State.reset();
             plot(ctx);
         },
         plot: (updates) => {
-            setState(updates);
+            State.set(updates);
             plot(ctx);
         },
     };

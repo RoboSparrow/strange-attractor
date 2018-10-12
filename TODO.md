@@ -11,6 +11,7 @@ Attractors
 Mithril
 
 - components: one syntax: class
+- rangeslider init position not value like!
 
 Misc
 

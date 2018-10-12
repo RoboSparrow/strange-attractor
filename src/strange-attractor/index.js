@@ -7,15 +7,17 @@ import Particle from '../space/Particle';
 import Matrix4x4, { idendityMatrix } from '../space/Matrix4x4';
 
 import animation from '../animation';
+
 import initCanvas from '../canvas';
+import StateProvider from '../state';
 
-// cool
-// "focalLength": 119, "pixelDensity": 94
+// state
 
-
-const Defaults = Object.freeze({
+const State = new StateProvider({
     // animation types: continous, mousemove
     animationMode: 'continous',
+
+    maxParticles: 1024 * 300,
 
     // mousemove coords
     targetX: 0,
@@ -25,38 +27,9 @@ const Defaults = Object.freeze({
     pixelDensity: 32,
 });
 
-const State = Object.assign({}, Defaults);
+const compute = function() {
+    const { maxParticles } = State.get();
 
-const resetState = function() {
-    return Object.assign(State, Defaults);
-};
-
-const getState = function() {
-    return Object.assign({}, State);
-};
-
-const setState = function(updates) {
-    return Object.assign(State, updates);
-};
-
-const MaxParticles = 1024 * 300;
-
-const createParticleChain = function(max = MaxParticles) {
-
-    const chain = new Particle();
-    let current = chain;
-    let count = max;
-
-    while (count > 0) {
-        current.next = new Particle();
-        current = current.next;
-        count -= 1;
-    }
-
-    return chain;
-};
-
-const applyAttractor = function(chain) {
     const scale = 40.0;
 
     const _a = 1.111;
@@ -72,9 +45,11 @@ const applyAttractor = function(chain) {
     let my = 0.0;
     let mz = 0.0;
 
-    let particle = chain;
+    const chain = []; //todo new Float32Array(maxParticles)
+    let particle;
 
-    while (particle !== null) {
+    let i = 0;
+    while (i < maxParticles) {
 
         mx = cx + _d * (-_a * cx - cy * cy - cz * cz + _a * _f);
         my = cy + _d * (-cy + cx * cy - _b * cx * cz + _g);
@@ -84,11 +59,13 @@ const applyAttractor = function(chain) {
         cy = my;
         cz = mz;
 
+        particle = new Particle();
         particle.x = mx * scale;
         particle.y = my * scale;
         particle.z = mz * scale;
+        chain[i] = particle;
 
-        particle = particle.next;
+        i += 1;
     }
 
     return chain;
@@ -97,7 +74,7 @@ const applyAttractor = function(chain) {
 const update = function(ctx, chain, matrix) {
 
     const { count } = animation.getState();
-    const { targetX, targetY, focalLength, pixelDensity, animationMode } = getState();
+    const { targetX, targetY, focalLength, pixelDensity, animationMode } = State.get();
 
     const transformX = (animationMode === 'mousemove') ? targetX : count;
     const transformY = (animationMode === 'mousemove') ? targetY : count;
@@ -128,10 +105,13 @@ const update = function(ctx, chain, matrix) {
     const maxIndex = imageData.data.length; //or: (width * height) * 4
     let index = maxIndex;
 
-    let particle = chain;
+    let particle;
 
-    while (particle !== null) {
+    let i = 0;
+    const numParticles = chain.length;
 
+    while (i < numParticles) {
+        particle = chain[i];
         ({ x, y, z } = particle);
 
         // 00 this.I00; 01 this.I01; 02 this.I02; 03 this.I03;
@@ -154,7 +134,7 @@ const update = function(ctx, chain, matrix) {
 
         }
 
-        particle = particle.next;
+        i += 1;
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -170,11 +150,8 @@ const initcontext2d = function(canvas) {
 };
 
 const plot = function(ctx) {
-    let chain;
     const matrix = idendityMatrix(); // todo move out?
-
-    chain = createParticleChain();
-    chain = applyAttractor(chain);
+    const chain = compute();
 
     animation.init(() => update(ctx, chain, matrix), { fps: 32 });
 };
@@ -184,12 +161,12 @@ const init = function(container) {
     const ctx = initcontext2d(canvas);
 
     canvas.addEventListener('mousemove', (e) => {
-        const { animationMode, targetX, targetY } = getState();
+        const { animationMode, targetX, targetY } = State.get();
         if (animationMode !== 'mousemove') {
             return;
         }
 
-        setState({
+        State.set({
             targetX: (e.clientX - targetX) * 0.1,
             targetY: (e.clientY - targetY) * 0.1,
         });
@@ -197,13 +174,13 @@ const init = function(container) {
     }, false);
 
     return {
-        getState,
+        getState: State.get,
         reset: () => {
-            resetState();
+            State.reset();
             plot(ctx);
         },
         plot: (updates) => {
-            setState(updates);
+            State.set(updates);
             plot(ctx);
         },
     };

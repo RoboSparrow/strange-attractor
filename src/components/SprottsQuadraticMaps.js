@@ -15,26 +15,12 @@ const handleChange = function(e, type, plotter) {
         default:
             // nothing
     }
-    console.log(name, value);
+
     plotter.plot({
         [name]: value,
     });
+    // todo `Worker error: "${message}" in ${filename}:${lineno}`
 };
-
-class PatternInput {
-    view(vnode) { // eslint-disable-line class-methods-use-this
-        const { plotter } = vnode.attrs;
-        const { pattern } = plotter.getState();
-        return m('.mui-form--inline', [
-            m('mui-textfield', [
-                m('input[name=pattern][type=text]', {
-                    value: pattern,
-                    onchange: e => handleChange(e, 'string', plotter),
-                }),
-            ]),
-        ]);
-    }
-}
 
 class RandomPattern {
     handleChange(e, plotter) { // eslint-disable-line class-methods-use-this
@@ -48,7 +34,24 @@ class RandomPattern {
 
     view(vnode) {
         const { plotter } = vnode.attrs;
-        return m('a[href=#]', { onclick: e => this.handleChange(e, plotter) }, 'random pattern');
+        return m('a.mui--text-menu', { onclick: e => this.handleChange(e, plotter) }, ' » random');
+    }
+}
+
+class PatternInput {
+    view(vnode) { // eslint-disable-line class-methods-use-this
+        const { plotter } = vnode.attrs;
+        const { pattern } = plotter.getState();
+
+        return m('.mui-form--inline', [
+            m('mui-textfield', [
+                m('input[name=pattern][type=text]', {
+                    value: pattern,
+                    onchange: e => handleChange(e, 'string', plotter),
+                }),
+                m(RandomPattern, { plotter }),
+            ]),
+        ]);
     }
 }
 
@@ -106,12 +109,11 @@ class SprottsQuadraticMaps {
     view() {
         const { plotter } = this;
 
-        return m('form', { className: 'mui-form' }, [
-            Slider('[min=100][max=10000]', plotter, 'maxParticles'),
+        return m('form', { className: 'mui-form', onsubmit: e => e.preventDefault() }, [
+            Slider('[min=100][max=150000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
             m(PatternInput, { plotter }),
-            m(RandomPattern, { plotter }),
             m('hr'),
             PatternsList(plotter),
             m('hr'),
