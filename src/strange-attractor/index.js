@@ -45,7 +45,7 @@ const compute = function() {
     let my = 0.0;
     let mz = 0.0;
 
-    const chain = []; //todo new Float32Array(maxParticles)
+    const chain = []; //todo new Float32Array(maxParticles * 3)
     let particle;
 
     let i = 0;
@@ -54,6 +54,15 @@ const compute = function() {
         mx = cx + _d * (-_a * cx - cy * cy - cz * cz + _a * _f);
         my = cy + _d * (-cy + cx * cy - _b * cx * cz + _g);
         mz = cz + _d * (-cz + _b * cx * cy + cx * cz);
+
+        // prevent infinity: largest integer +/- 9007199254740991 (+/- 2^53)
+        /* eslint-disable no-restricted-globals */
+        if (!isFinite(mx) || !isFinite(my) || !isFinite(mz)) {
+            mx = 0;
+            my = 0;
+            mz = 0;
+        }
+        /* eslint-enable no-restricted-globals */
 
         cx = mx;
         cy = my;

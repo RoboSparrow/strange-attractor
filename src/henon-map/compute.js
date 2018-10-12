@@ -9,7 +9,7 @@ const compute = function(state) {
     let y = 0.0;
     let z = 0.0;
 
-    const chain = []; //todo new Float32Array(maxParticles)
+    const chain = []; //todo new Float32Array(maxParticles * 3)
     let particle;
     let prev = null;
 
@@ -30,11 +30,13 @@ const compute = function(state) {
             y = beta * prev.x;
             z = 0;
 
-            // prevent infinity
-            if (Math.abs(x) > 1e6 || Math.abs(y) > 1e6) {
+            // prevent infinity: largest integer +/- 9007199254740991 (+/- 2^53)
+            /* eslint-disable no-restricted-globals */
+            if (!isFinite(x) || !isFinite(y)) {
                 x = 0;
                 y = 0;
             }
+            /* eslint-enable no-restricted-globals */
         }
 
         particle = new Particle();
