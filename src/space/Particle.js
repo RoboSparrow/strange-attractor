@@ -3,7 +3,6 @@ class Particle {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.next = null;
     }
 }
 
