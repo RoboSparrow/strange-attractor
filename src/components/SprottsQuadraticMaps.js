@@ -1,4 +1,5 @@
-/* global m */
+import m from 'mithril';
+
 import { init, Patterns, createRandomPattern } from '../sprotts-quadratic-maps';
 import Dev from './Dev';
 
@@ -14,42 +15,40 @@ const handleChange = function(e, type, plotter) {
         default:
             // nothing
     }
-
+    console.log(name, value);
     plotter.plot({
         [name]: value,
     });
 };
 
+class PatternInput {
+    view(vnode) { // eslint-disable-line class-methods-use-this
+        const { plotter } = vnode.attrs;
+        const { pattern } = plotter.getState();
+        return m('.mui-form--inline', [
+            m('mui-textfield', [
+                m('input[name=pattern][type=text]', {
+                    value: pattern,
+                    onchange: e => handleChange(e, 'string', plotter),
+                }),
+            ]),
+        ]);
+    }
+}
+
 class RandomPattern {
-    constructor() {
-        this.pattern = '';
-    }
-
-    oninit(vnode) {
-        this.pattern = vnode.attrs.plotter.getState().pattern;
-    }
-    // todo only updates after second click -> separate textfield in extra component
-    onupdate(vnode) {
-        this.pattern = vnode.attrs.plotter.getState().pattern;
-    }
-
-    handleChange(e, plotter) {
+    handleChange(e, plotter) { // eslint-disable-line class-methods-use-this
         e.preventDefault();
 
-        this.pattern = createRandomPattern();
+        const pattern = createRandomPattern();
         plotter.plot({
-            pattern: this.pattern,
+            pattern: pattern,
         });
     }
 
     view(vnode) {
         const { plotter } = vnode.attrs;
-        return m('.mui-form--inline', [
-            m('mui-textfield', [
-                m('input[type=text]', { value: this.pattern }),
-                m('a', { onclick: e => this.handleChange(e, plotter) }, 'random pattern'),
-            ]),
-        ]);
+        return m('a[href=#]', { onclick: e => this.handleChange(e, plotter) }, 'random pattern');
     }
 }
 
@@ -111,6 +110,7 @@ class SprottsQuadraticMaps {
             Slider('[min=100][max=10000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
+            m(PatternInput, { plotter }),
             m(RandomPattern, { plotter }),
             m('hr'),
             PatternsList(plotter),

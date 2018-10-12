@@ -1,4 +1,7 @@
-/* global m */
+import m from 'mithril';
+
+import './main.css';
+
 import StrangeAttractor from './components/StrangeAttractor';
 import HenonMap from './components/HenonMap';
 import GingerbreadmanMap from './components/GingerbreadmanMap';
@@ -44,14 +47,14 @@ const masonry = function(leftComponent, rightComponent) {
     };
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const root = document.body;
+// document.addEventListener('DOMContentLoaded', () => {
+const root = document.body;
 
-    m.route(root, '/strange-attractor', {
-        '/strange-attractor': masonry('#plotter', StrangeAttractor),
-        '/henon-map': masonry('#plotter', HenonMap),
-        '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
-        '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
-    });
-
+m.route(root, '/strange-attractor', {
+    '/strange-attractor': masonry('#plotter', StrangeAttractor),
+    '/henon-map': masonry('#plotter', HenonMap),
+    '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
+    '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
 });
+
+// });

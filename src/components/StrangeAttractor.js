@@ -1,4 +1,5 @@
-/* global m */
+import m from 'mithril';
+
 import { init, animation } from '../strange-attractor';
 import Dev from './Dev';
 

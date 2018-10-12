@@ -1,4 +1,5 @@
-/* global m */
+import m from 'mithril';
+
 import { init } from '../gingerbreadman-map';
 import Dev from './Dev';
 
