@@ -1,5 +1,13 @@
 # Strange Attractor
 
-Casually playing around with Matrix4x4 operations. The attractor algorithm is heavily inspired by [mrdoobs example](https://mrdoob.com/#/107/strange_attractor)
+Playing with Matrix4x4 and attractor algorithms.
 
-WIP. The ui is driven by [mithril.js](https://mithril.js.org/) and [MUI](https://www.muicss.com/)
+WIP.
+
+Inspired by
+
+* [Strange Attractors: Creating Patterns in Chaos](https://www.amazon.com/Strange-Attractors-Creating-Patterns-Chaos/dp/1558512985) by Julien C. Sprott
+* [mrdoobs strange attractor example](https://mrdoob.com/#/107/strange_attractor)
+* [Wolfram MathWorld](http://mathworld.wolfram.com)
+
+Driven by [mithril.js](https://mithril.js.org/) and [MUI](https://www.muicss.com/)
