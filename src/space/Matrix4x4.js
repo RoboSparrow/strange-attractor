@@ -24,12 +24,12 @@ const idendityMatrix = function() {
         08 this.I20; 09 this.I21; 10 this.I22; 11 this.I23;
         12 this.I30; 13 this.I31; 14 this.I32; 15 this.I33;
     */
-    return [
+    return new Float32Array([
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1,
-    ];
+    ]);
 };
 
 const Matrix4x4 = {
