@@ -3,6 +3,7 @@ import m from 'mithril';
 import './main.css';
 
 import StrangeAttractor from './components/StrangeAttractor';
+import LorenzAttractor from './components/LorenzAttractor';
 import HenonMap from './components/HenonMap';
 import GingerbreadmanMap from './components/GingerbreadmanMap';
 import SprottsQuadraticMaps from './components/SprottsQuadraticMaps';
@@ -27,6 +28,7 @@ const Menu = {
         return m('nav', { className: 'mui-panel' }, [
             m(Button, { href: '/', title: 'Home' }),
             m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),
+            m(Button, { href: '/lorenz-attractor', title: 'Lorenz Attractor' }),
             m(Button, { href: '/henon-map', title: 'Henon Map' }),
             m(Button, { href: '/gingerbreadman-map', title: 'Gingerbreadman Map' }),
             m(Button, { href: '/sprotts-quadratic-maps', title: 'Sprott\'s Quadratic Maps' }),
@@ -52,6 +54,7 @@ const root = document.body;
 
 m.route(root, '/strange-attractor', {
     '/strange-attractor': masonry('#plotter', StrangeAttractor),
+    '/lorenz-attractor': masonry('#plotter', LorenzAttractor),
     '/henon-map': masonry('#plotter', HenonMap),
     '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
     '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
