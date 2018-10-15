@@ -8,6 +8,8 @@ Attractors
 - sprotts qmaps: orientation, x,y min-max, center
 - ~~isFinite() for infinity check~~
 
+-lorenz attractor: z-dimension (computed, but not rendered)
+
 Mithril
 
 - components: one syntax: class
@@ -17,4 +19,3 @@ Misc
 
  - image/video export?
  - "about" sections for attractors with proper credits
-
