@@ -3,7 +3,7 @@
  * @see https://www.dreamincode.net/forums/topic/365205-Henon-Map/
  * @see https://www.rdocumentation.org/packages/nonlinearTseries/versions/0.2.4/topics/henon
  */
-import Worker from './compute.worker';
+import compute from './compute';
 import animation from '../animation';
 
 import initCanvas from '../canvas';
@@ -13,84 +13,77 @@ import StateProvider from '../state';
 
 const State = new StateProvider({
     // coefficients
-    r: 0.1,
+    r: 3.6,
     // quantity
-    maxParticles: 3000,
+    maxParticles: 100,
     scale: 100,
 });
 
 // rendering
 
-const locatePixel2D = function(x, y, width) {
-    return y * (width * 4) + x * 4;
+const renderR = function(ctx, r, textColor) {
+    const cache = ctx.fillStyle;
+    const { height } = ctx.canvas;
+
+    ctx.fillStyle = textColor;
+    ctx.font = '10px sans-serif';
+    ctx.fillText(`r=${r}`, 5, height - 5);
+    ctx.fillStyle = cache;
 };
 
 const update = function(ctx, chain) {
 
+    const state = State.get();
+    State.set({ r: (state.r > 4) ? 0 : state.r + 0.005 });
+    chain = compute(state);
+
     const { width, height } = ctx.canvas;
 
     ctx.fillRect(0, 0, width, height);
-    const imageData = ctx.getImageData(0, 0, width, height);
 
-    const { scale } = State.get();
-    const translateCenter = (width > height) ? height / 2 : width / 2;
+    //const { scale } = State.get();
+    const translateY = height / 2;
 
     let particle;
 
     const max = chain.length;
     let i = 0;
-    let red;
     let x;
     let y;
 
     // clear canvas
     ctx.fillRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.moveTo(chain[0].x, chain[0].y);
+    ctx.strokeStyle = 'rgba(255,0,0,1)';
+    ctx.lineWidth = 1;
 
     while (i < max) {
         particle = chain[i];
 
         // interpolating to canvas
-        x = Math.floor(translateCenter + (scale * particle.x));
-        y = Math.floor(translateCenter + (-scale * particle.y));
+        x = Math.floor(width * particle.x);
+        y = Math.floor(translateY * particle.y);
 
-        red = locatePixel2D(x, y, width);
-        imageData.data[red] = 255;
+        ctx.lineTo(x, y);
 
         i += 1;
     }
 
     // fill canvas
-    ctx.putImageData(imageData, 0, 0);
+    ctx.stroke();
+
+    renderR(ctx, state.r, 'rgba(255,0,0,1)');
 };
 
 // algorithm
 
-const compute = function() {
-
-    const state = State.get();
-
-    return new Promise((resolve, reject) => {
-        const worker = new Worker();
-
-        worker.addEventListener('message', (e) => {
-            // todo track progress
-            const { chain } = e.data;
-            resolve(chain);
-        });
-
-        worker.addEventListener('error', (error) => {
-            reject(error);
-        });
-
-        worker.postMessage({ state });
-    });
-
-};
 
 // plotting
 
 const plot = function(ctx) {
-    return compute().then((chain) => {
+    const state = State.get();
+    return Promise.resolve(compute(state)).then((chain) => {
         animation.init(() => update(ctx, chain), { fps: 32 });
         return true;
     });

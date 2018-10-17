@@ -1,3 +1,6 @@
+/**
+ * @see http://mathworld.wolfram.com/LogisticMap.html
+ */
 import Particle from '../space/Particle';
 
 const compute = function(state) {
@@ -6,7 +9,7 @@ const compute = function(state) {
     const scale = 1.0;
 
     let x = 0.0;
-    let y = 0.0;
+    let y = 0.6;
     let z = 0.0;
 
     const chain = []; //todo new Float32Array(maxParticles * 3)
@@ -14,19 +17,20 @@ const compute = function(state) {
     let prev = null;
 
     let i = 0;
+    const step = 1 / maxParticles;
     while (i < maxParticles) {
 
         if (i === 0) {
 
-            x = 0.1;
-            y = 0.1;
+            x = 0;
+            y = 0.6;
             z = 0;
 
         } else {
 
             prev = chain[i - 1];
 
-            x = i / scale;
+            x += step;
             y = r * prev.y * (1 - prev.y);
             z = 0;
 

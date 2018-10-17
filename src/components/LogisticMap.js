@@ -62,8 +62,8 @@ class LogisticMap {
             Slider('[min=100][max=10000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
             m('hr'),
-            Slider('[min=0][max=5][steps="0.1"]', plotter, 'r'),
-            m('hr'),
+            // Slider('[min=0][max=5][step="0.1"]', plotter, 'r'),
+            // m('hr'),
             ResetButton(plotter),
             m(Dev, {
                 data: {
