@@ -1,5 +1,6 @@
 import m from 'mithril';
-import { init } from '../logistic-map';
+
+import { init } from '../ideka-map';
 import Dev from './Dev';
 
 //data binding helper function
@@ -9,7 +10,7 @@ const handleChange = function(e, type, plotter) {
     let { name, value } = e.target;// eslint-disable-line prefer-const
     switch (type) {
         case 'number':
-            value = parseFloat(value);
+            value = parseFloat(value, 10);
             break;
         default:
             // nothing
@@ -42,7 +43,7 @@ const ResetButton = function(plotter) {
     } }, 'Reset');
 };
 
-class LogisticMap {
+class IdekaMap {
 
     constructor() {
         this.formState = {};
@@ -51,34 +52,19 @@ class LogisticMap {
     oninit() {
         this.plotter = init('#plotter', this.formState);
         this.plotter.plot();
-
-        this.formState = this.plotter.getState();
     }
 
     view() {
         const { plotter } = this;
 
         return m('form', { className: 'mui-form' }, [
-            Slider('[min=10][max=1000]', plotter, 'maxParticles'),
+            Slider('[min=100][max=10000]', plotter, 'maxParticles'),
+            Slider('[min=1][max=500]', plotter, 'scale'),
+            m('', `trajectoryIterations: ${this.formState.trajectoryIterations}`),
+            m('hr'),
+            Slider('[min=0.1][max=25]', plotter, 'u'),
             m('hr'),
             ResetButton(plotter),
-            m('hr'),
-            m('p', [
-                'Order descents into chaos.',
-                m('br'),
-                'Demonstration of the logistic map, the progression of coefficent',
-                m('i[class=mui--text-dark-secondary]', ' r '),
-                ' in ',
-                m('i[class=mui--text-dark-secondary]', [
-                    'x',
-                    m('sub', 'n+1'),
-                    ' = rx',
-                    m('sub', 'n'),
-                    '(1-x',
-                    m('sub', 'n'),
-                    ')',
-                ]),
-            ]),
             m(Dev, {
                 data: {
                     plotter: plotter.getState(),
@@ -88,4 +74,4 @@ class LogisticMap {
     }
 }
 
-export default LogisticMap;
+export default IdekaMap;

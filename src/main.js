@@ -6,6 +6,7 @@ import StrangeAttractor from './components/StrangeAttractor';
 import LorenzAttractor from './components/LorenzAttractor';
 import HenonMap from './components/HenonMap';
 import LogisticMap from './components/LogisticMap';
+import IdekaMap from './components/IdekaMap';
 import GingerbreadmanMap from './components/GingerbreadmanMap';
 import SprottsQuadraticMaps from './components/SprottsQuadraticMaps';
 
@@ -32,6 +33,7 @@ const Menu = {
             m(Button, { href: '/lorenz-attractor', title: 'Lorenz Attractor' }),
             m(Button, { href: '/henon-map', title: 'Henon Map' }),
             m(Button, { href: '/logistic-map', title: 'Logistic Map' }),
+            m(Button, { href: '/ideka-map', title: 'Ideka Map' }),
             m(Button, { href: '/gingerbreadman-map', title: 'Gingerbreadman Map' }),
             m(Button, { href: '/sprotts-quadratic-maps', title: 'Sprott\'s Quadratic Maps' }),
         ]);
@@ -59,6 +61,7 @@ m.route(root, '/strange-attractor', {
     '/lorenz-attractor': masonry('#plotter', LorenzAttractor),
     '/henon-map': masonry('#plotter', HenonMap),
     '/logistic-map': masonry('#plotter', LogisticMap),
+    '/ideka-map': masonry('#plotter', IdekaMap),
     '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
     '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
 });

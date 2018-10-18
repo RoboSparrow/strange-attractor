@@ -3,7 +3,7 @@
  * @see https://www.dreamincode.net/forums/topic/365205-Henon-Map/
  * @see https://www.rdocumentation.org/packages/nonlinearTseries/versions/0.2.4/topics/henon
  */
-import compute from './compute';
+import Worker from './compute.worker';
 import animation from '../animation';
 
 import initCanvas from '../canvas';
@@ -13,98 +13,88 @@ import StateProvider from '../state';
 
 const State = new StateProvider({
     // coefficients
-    r: 3.6,
+    u: 0.918,
     // quantity
-    maxParticles: 100,
+    maxParticles: 200,
+    trajectoryIterations: 1000,
     scale: 100,
 });
 
 // rendering
 
-const renderR = function(ctx, r, textColor) {
-    const cache = ctx.fillStyle;
-    const { height } = ctx.canvas;
-
-    ctx.fillStyle = textColor;
-    ctx.font = '10px sans-serif';
-    ctx.fillText(`r=${r}`, 5, height - 5);
-    ctx.fillStyle = cache;
+const locatePixel2D = function(x, y, width) {
+    return y * (width * 4) + x * 4;
 };
 
-// const renderCoords = function(ctx, r, textColor) {
-//     const cache = ctx.fillStyle;
-//     const { height } = ctx.canvas;
-//
-//     ctx.fillStyle = textColor;
-//     ctx.font = '10px sans-serif';
-//     ctx.fillText(`r=${r}`, 5, height - 5);
-//     ctx.fillStyle = cache;
-// };
-
-const updateState = function() {
-    let { r } = State.get();
-
-    if (r > 4) {
-        r = 0;
-        State.set({ r });
-        return State.get();
-    }
-
-    r += 0.01;
-    State.set({ r });
-    return State.get();
-};
-
-const update = function(ctx) {
-
-    const state = updateState();
-    const chain = compute(state);
+const update = function(ctx, chain) {
 
     const { width, height } = ctx.canvas;
 
     ctx.fillRect(0, 0, width, height);
+    const imageData = ctx.getImageData(0, 0, width, height);
+
+    const { scale } = State.get();
+    const translateCenter = (width > height) ? height / 2 : width / 2;
 
     let particle;
 
     const max = chain.length;
     let i = 0;
+    let red;
     let x;
     let y;
 
-    // renderCoords(ctx, state.r, 'rgba(255,255,255,0.5)');
-
     // clear canvas
     ctx.fillRect(0, 0, width, height);
-    ctx.beginPath();
-    ctx.moveTo(chain[0].x, chain[0].y);
-    ctx.strokeStyle = 'rgba(255,0,0,1)';
-    ctx.lineWidth = 1;
 
     while (i < max) {
         particle = chain[i];
 
         // interpolating to canvas
-        x = Math.floor(width * particle.x);
-        y = Math.floor(height * particle.y);
+        x = Math.floor(translateCenter + (scale * particle.x));
+        y = Math.floor(translateCenter + (-scale * particle.y));
 
-        ctx.lineTo(x, y);
+        red = locatePixel2D(x, y, width);
+        imageData.data[red] = 255;
 
         i += 1;
     }
 
-    ctx.stroke();
-
-    renderR(ctx, state.r, 'rgba(255,0,0,1)');
+    // fill canvas
+    ctx.putImageData(imageData, 0, 0);
 };
 
 // algorithm
 
+const compute = function() {
+
+    const state = State.get();
+
+    return new Promise((resolve, reject) => {
+        const worker = new Worker();
+
+        worker.addEventListener('message', (e) => {
+            // todo track progress
+            const { chain } = e.data;
+            resolve(chain);
+        });
+
+        worker.addEventListener('error', (error) => {
+            reject(error);
+        });
+
+        worker.postMessage({ state });
+    });
+
+};
 
 // plotting
 
 const plot = function(ctx) {
-    animation.init(() => update(ctx), { fps: 32 });
-    return Promise.resolve(true);
+    return compute().then((chain) => {
+        animation.init(() => update(ctx, chain), { fps: 32 });
+        return true;
+    });
 };
 
 const initcontext2d = function(canvas) {
@@ -129,7 +119,7 @@ const init = function(container = document.body) {
         },
         plot: (updates) => {
             State.set(updates);
-            plot(ctx);
+            return plot(ctx);
         },
     };
 };
