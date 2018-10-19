@@ -1,6 +1,6 @@
 // todo stateprovider
 const _defaults = Object.freeze({
-    fps: 32,
+    fps: -1, // no throttling
     count: 0,
 });
 

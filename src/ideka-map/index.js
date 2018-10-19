@@ -106,8 +106,7 @@ const plot = function(ctx) {
 const init = function(container = document.body) {
     const canvas = initCanvas(container);
     const { ctx } = contextHelper(canvas).clear('#101010');
-
-    animation.setState({ fps: 32 });
+    animation.throttle(32);
 
     return {
         getState: State.get,
