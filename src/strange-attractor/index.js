@@ -4,7 +4,7 @@
  */
 
 import Particle from '../space/Particle';
-import Matrix4x4, { idendityMatrix } from '../space/Matrix4x4';
+import Matrix4x4 from '../space/Matrix4x4';
 
 import animation from '../animation';
 import initCanvas, { contextHelper } from '../canvas';
@@ -25,6 +25,15 @@ const State = new StateProvider({
     focalLength: 10,
     pixelDensity: 32,
 });
+
+const computeTranslationMatrix = function(transformX, transformY) {
+    const translationMatrix = Matrix4x4.translate(0, 0, 10);
+
+    let matrix = Matrix4x4.rotateY(transformX * 0.05);
+    matrix = Matrix4x4.multiply(matrix, Matrix4x4.rotateX(transformY * 0.05));
+    matrix = Matrix4x4.multiply(matrix, translationMatrix);
+    return matrix;
+};
 
 const compute = function() {
     const { maxParticles } = State.get();
@@ -79,7 +88,7 @@ const compute = function() {
     return chain;
 };
 
-const update = function(ctx, chain, matrix) {
+const update = function(ctx, chain) {
 
     const { count } = animation.getState();
     const { targetX, targetY, focalLength, pixelDensity, animationMode } = State.get();
@@ -91,12 +100,7 @@ const update = function(ctx, chain, matrix) {
 
     ctx.fillRect(0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
-
-    const translationMatrix = Matrix4x4.translate(0, 0, 10);
-
-    matrix = Matrix4x4.rotateY(transformX * 0.05);
-    matrix = Matrix4x4.multiply(matrix, Matrix4x4.rotateX(transformY * 0.05));
-    matrix = Matrix4x4.multiply(matrix, translationMatrix);
+    const matrix = computeTranslationMatrix(transformX, transformY);
 
     const cx = 275;
     const cy = 200;//TODO canvas/2?
@@ -130,8 +134,8 @@ const update = function(ctx, chain, matrix) {
         pz = focalLength + x * matrix[2] + y * matrix[6] + z * matrix[10] + matrix[14];
 
         if (pz > 0) {
-
-            xi = Math.floor((w = focalLength / pz) * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + cx);
+            w = focalLength / pz;
+            xi = Math.floor(w * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + cx);
             yi = Math.floor(w * (x * matrix[1] + y * matrix[5] + z * matrix[9]) + cy);
 
             index = (xi + yi * width) * 4; //rgb - red
@@ -149,10 +153,9 @@ const update = function(ctx, chain, matrix) {
 };
 
 const plot = function(ctx) {
-    const matrix = idendityMatrix(); // todo move out?
     const chain = compute();
 
-    animation.assign(() => update(ctx, chain, matrix)).play();
+    animation.assign(() => update(ctx, chain)).play();
 };
 
 const init = function(container) {
