@@ -31,7 +31,11 @@ const computeIkedaPoint = function(prev, u) {
     return new Particle(x, y, z);
 };
 
-const computeIdekaTrail = function(origin, state) {
+const computeIdekaTrail = function(state, origin = null) {
+
+    if (!origin) {
+        origin = new Particle(randomBetween(-1, 1), randomBetween(-1, 1), 0);
+    }
 
     const { trajectoryIterations, u } = state;
     const chain = [origin];
@@ -55,12 +59,12 @@ const compute = function(state) {
     const { maxParticles } = state;
     let chain = [];
 
-    let prev = null;
+    let origin = null;
     let i = 0;
 
     while (i < maxParticles) {
-        prev = new Particle(randomBetween(-1, 1), randomBetween(-1, 1), 0);
-        chain = chain.concat(computeIdekaTrail(prev, state));
+        origin = new Particle(randomBetween(-1, 1), randomBetween(-1, 1), 0);
+        chain = chain.concat(computeIdekaTrail(state, origin));
         i += 1;
     }
 
@@ -69,4 +73,4 @@ const compute = function(state) {
 };
 
 
-export default compute;
+export { compute as default, computeIdekaTrail };

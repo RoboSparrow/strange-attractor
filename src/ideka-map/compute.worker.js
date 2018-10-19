@@ -1,9 +1,9 @@
 /* eslint-env serviceworker */
-import compute from './compute';
+import { computeIdekaTrail } from './compute';
 
 onmessage = function(e) {
     const { state } = e.data;
-    const chain = compute(state);
+    const chain = computeIdekaTrail(state);
 
     postMessage({ state, chain });
 };

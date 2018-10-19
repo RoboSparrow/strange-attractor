@@ -1,7 +1,5 @@
 /**
- * @see http://mathworld.wolfram.com/HenonMap.html
- * @see https://www.dreamincode.net/forums/topic/365205-Henon-Map/
- * @see https://www.rdocumentation.org/packages/nonlinearTseries/versions/0.2.4/topics/henon
+ * @see https://en.wikipedia.org/wiki/Ikeda_map
  */
 import Worker from './compute.worker';
 import animation from '../animation';
@@ -17,7 +15,9 @@ const State = new StateProvider({
     // quantity
     maxParticles: 200,
     trajectoryIterations: 1000,
-    scale: 100,
+    scale: 30,
+    // rendering
+    drawingMode: 'pixel',
 });
 
 // rendering
@@ -26,14 +26,30 @@ const locatePixel2D = function(x, y, width) {
     return y * (width * 4) + x * 4;
 };
 
-const update = function(ctx, chain) {
+const renderProgress = function(ctx, percent, textColor) {
+    const margin = 20;
+    const height = 10;
+    ctx.save();
+    ctx.textBaseline = 'top';
+    ctx.font = `${height}px sans-serif`;
+
+    const msg = `${percent}%`;
+    const { width } = ctx.measureText(msg);
+    ctx.fillRect(margin, margin, width, height);
+
+    ctx.fillStyle = textColor;
+    ctx.fillText(msg, margin, margin);
+    ctx.restore();
+};
+
+const update = function(ctx, chain, index) {
 
     const { width, height } = ctx.canvas;
 
-    ctx.fillRect(0, 0, width, height);
+    //ctx.fillRect(0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
 
-    const { scale } = State.get();
+    const { scale, maxParticles, drawingMode } = State.get();
     const translateCenter = (width > height) ? height / 2 : width / 2;
 
     let particle;
@@ -45,7 +61,13 @@ const update = function(ctx, chain) {
     let y;
 
     // clear canvas
-    ctx.fillRect(0, 0, width, height);
+    //ctx.fillRect(0, 0, width, height);
+
+    if (drawingMode === 'path') {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgb(255, 0, 0)';
+        ctx.lineWidth = 1;
+    }
 
     while (i < max) {
         particle = chain[i];
@@ -54,36 +76,64 @@ const update = function(ctx, chain) {
         x = Math.floor(translateCenter + (scale * particle.x));
         y = Math.floor(translateCenter + (-scale * particle.y));
 
-        red = locatePixel2D(x, y, width);
-        imageData.data[red] = 255;
+        if (drawingMode === 'path') {
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        } else {
+            red = locatePixel2D(x, y, width);
+            imageData.data[red] = 255;
+        }
 
         i += 1;
     }
 
     // fill canvas
-    ctx.putImageData(imageData, 0, 0);
+    if (drawingMode === 'path') {
+        ctx.stroke();
+    } else {
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    const percent = Math.floor(index / maxParticles * 100);
+    renderProgress(ctx, percent, 'rgba(255,0,0,1)');
 };
 
 // algorithm
 
-const compute = function() {
+const compute = function(callback) {
 
     const state = State.get();
+    const { maxParticles } = state;
+    const worker = new Worker();
 
+    let index = 0;
     return new Promise((resolve, reject) => {
-        const worker = new Worker();
-
         worker.addEventListener('message', (e) => {
             // todo track progress
+            index += 1;
+
+            if (index >= maxParticles) {
+                resolve(true);
+            }
+
             const { chain } = e.data;
-            resolve(chain);
+            callback(chain, index);
+            if (index < maxParticles) {
+                setTimeout(() => worker.postMessage({ state, id: index }), 50);
+            }
+
         });
 
         worker.addEventListener('error', (error) => {
+            index += 1;
+            console.log(error);
             reject(error);
         });
 
-        worker.postMessage({ state });
+        worker.postMessage({ state, id: index });
     });
 
 };
@@ -96,11 +146,10 @@ const plot = function(ctx) {
         .clear('#101010')
         .progress('computing..', '#ff0000');
 
-    return compute().then((chain) => {
-        contextHelper(ctx).clear('#101010');
-        animation.assign(() => update(ctx, chain)).play();
+    return compute((chain, index) => {
+        update(ctx, chain, index);
         return true;
-    });
+    }).then(() => animation.play());
 };
 
 const init = function(container = document.body) {
