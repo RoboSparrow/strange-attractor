@@ -21,14 +21,33 @@ const State = new StateProvider({
 
 // rendering
 
-const renderR = function(ctx, r, textColor) {
-    const cache = ctx.fillStyle;
-    const { height } = ctx.canvas;
+const renderScales = function(ctx, color) {
+    const { width, height } = ctx.canvas;
 
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = '10px sans-serif';
+    ctx.textBaseline = 'middle';
+
+    let i = 0;
+    while (i <= 0.9) {
+        if (i !== 0) {
+            ctx.fillText(i.toFixed(1), 5, height - Math.floor(height * i)); //y
+            ctx.fillText(i.toFixed(1), Math.floor(width * i), height - 10); //x
+        }
+        i += 0.1;
+    }
+
+    ctx.restore();
+};
+
+const renderR = function(ctx, r, textColor) {
+    ctx.save();
+    ctx.textBaseline = 'middle';
     ctx.fillStyle = textColor;
     ctx.font = '10px sans-serif';
-    ctx.fillText(`r=${r}`, 5, height - 5);
-    ctx.fillStyle = cache;
+    ctx.fillText(`r=${r}`, 20, 20);
+    ctx.restore();
 };
 
 const updateState = function() {
@@ -61,8 +80,6 @@ const update = function(ctx) {
     let x;
     let y;
 
-    // renderCoords(ctx, state.r, 'rgba(255,255,255,0.5)');
-
     // clear canvas
     ctx.fillRect(0, 0, width, height);
     ctx.beginPath();
@@ -75,7 +92,7 @@ const update = function(ctx) {
 
         // interpolating to canvas
         x = Math.floor(width * particle.x);
-        y = Math.floor(height * particle.y);
+        y = height - Math.floor(height * particle.y);
 
         ctx.lineTo(x, y);
 
@@ -85,10 +102,8 @@ const update = function(ctx) {
     ctx.stroke();
 
     renderR(ctx, state.r, 'rgba(255,0,0,1)');
+    renderScales(ctx, 'rgba(255,255,255,0.5)');
 };
-
-// algorithm
-
 
 // plotting
 
