@@ -10,7 +10,7 @@ const handleChange = function(e, type, plotter) {
     let { name, value } = e.target;// eslint-disable-line prefer-const
     switch (type) {
         case 'number':
-            value = parseInt(value, 10);
+            value = parseFloat(value);
             break;
         default:
             // nothing
