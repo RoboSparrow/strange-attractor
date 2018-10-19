@@ -12,6 +12,7 @@ const handleChange = function(e, type, plotter) {
         case 'number':
             value = parseInt(value, 10);
             break;
+        case 'string':
         default:
             // nothing
     }
