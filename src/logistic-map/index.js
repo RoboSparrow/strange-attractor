@@ -6,7 +6,7 @@
 import compute from './compute';
 import animation from '../animation';
 
-import initCanvas from '../canvas';
+import initCanvas, { contextHelper } from '../canvas';
 import StateProvider from '../state';
 
 // state
@@ -30,16 +30,6 @@ const renderR = function(ctx, r, textColor) {
     ctx.fillText(`r=${r}`, 5, height - 5);
     ctx.fillStyle = cache;
 };
-
-// const renderCoords = function(ctx, r, textColor) {
-//     const cache = ctx.fillStyle;
-//     const { height } = ctx.canvas;
-//
-//     ctx.fillStyle = textColor;
-//     ctx.font = '10px sans-serif';
-//     ctx.fillText(`r=${r}`, 5, height - 5);
-//     ctx.fillStyle = cache;
-// };
 
 const updateState = function() {
     let { r } = State.get();
@@ -103,23 +93,18 @@ const update = function(ctx) {
 // plotting
 
 const plot = function(ctx) {
-    animation.init(() => update(ctx), { fps: 32 });
+    animation.stop();
+    contextHelper(ctx)
+        .clear('#101010')
+        .progress('computing..', '#ff0000');
+
+    animation.assign(() => update(ctx)).play();
     return Promise.resolve(true);
 };
 
-const initcontext2d = function(canvas) {
-    const { width, height } = canvas;
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#101010';
-    ctx.fillRect(0, 0, width, height);
-    return ctx;
-};
-
-
 const init = function(container = document.body) {
     const canvas = initCanvas(container);
-    const ctx = initcontext2d(canvas);
+    const { ctx } = contextHelper(canvas).clear('#101010');
 
     return {
         getState: State.get,

@@ -7,8 +7,7 @@ import Particle from '../space/Particle';
 import Matrix4x4, { idendityMatrix } from '../space/Matrix4x4';
 
 import animation from '../animation';
-
-import initCanvas from '../canvas';
+import initCanvas, { contextHelper } from '../canvas';
 import StateProvider from '../state';
 
 // state
@@ -149,28 +148,21 @@ const update = function(ctx, chain, matrix) {
     ctx.putImageData(imageData, 0, 0);
 };
 
-const initcontext2d = function(canvas) {
-    const { width, height } = canvas;
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#101010';
-    ctx.fillRect(0, 0, width, height);
-    return ctx;
-};
-
 const plot = function(ctx) {
     const matrix = idendityMatrix(); // todo move out?
     const chain = compute();
 
-    animation.init(() => update(ctx, chain, matrix), { fps: 32 });
+    animation.assign(() => update(ctx, chain, matrix)).play();
 };
 
 const init = function(container) {
     const canvas = initCanvas(container);
-    const ctx = initcontext2d(canvas);
+    const { ctx } = contextHelper(canvas).clear('#101010');
+
+    const { animationMode, targetX, targetY } = State.get();
 
     canvas.addEventListener('mousemove', (e) => {
-        const { animationMode, targetX, targetY } = State.get();
+
         if (animationMode !== 'mousemove') {
             return;
         }
@@ -181,6 +173,8 @@ const init = function(container) {
         });
 
     }, false);
+
+    animation.throttle(32);
 
     return {
         getState: State.get,

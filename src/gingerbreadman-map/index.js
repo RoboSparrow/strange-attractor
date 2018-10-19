@@ -4,7 +4,7 @@
 import Worker from './compute.worker';
 import animation from '../animation';
 
-import initCanvas from '../canvas';
+import initCanvas, { contextHelper } from '../canvas';
 import StateProvider from '../state';
 
 // state
@@ -89,24 +89,21 @@ const compute = function() {
 // plotting
 
 const plot = function(ctx) {
+    animation.stop();
+    contextHelper(ctx)
+        .clear('#101010')
+        .progress('computing..', '#ff0000');
+
     return compute().then((chain) => {
-        animation.init(() => update(ctx, chain), { fps: 32 });
+        contextHelper(ctx).clear('#101010');
+        animation.assign(() => update(ctx, chain)).play();
         return true;
     });
 };
 
-const initcontext2d = function(canvas) {
-    const { width, height } = canvas;
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#101010';
-    ctx.fillRect(0, 0, width, height);
-    return ctx;
-};
-
 const init = function(container = document.body) {
     const canvas = initCanvas(container);
-    const ctx = initcontext2d(canvas);
+    const { ctx } = contextHelper(canvas).clear('#101010');
 
     return {
         getState: State.get,

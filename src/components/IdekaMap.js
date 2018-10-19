@@ -46,11 +46,11 @@ const ResetButton = function(plotter) {
 class IdekaMap {
 
     constructor() {
-        this.formState = {};
+        this.plotter = null;
     }
 
     oninit() {
-        this.plotter = init('#plotter', this.formState);
+        this.plotter = init('#plotter');
         this.plotter.plot();
     }
 
@@ -60,7 +60,7 @@ class IdekaMap {
         return m('form', { className: 'mui-form' }, [
             Slider('[min=100][max=10000]', plotter, 'maxParticles'),
             Slider('[min=1][max=500]', plotter, 'scale'),
-            m('', `trajectoryIterations: ${this.formState.trajectoryIterations}`),
+            Slider('[min=100][max=3000]', plotter, 'trajectoryIterations'),
             m('hr'),
             Slider('[min=0.1][max=25]', plotter, 'u'),
             m('hr'),
