@@ -47,6 +47,16 @@ class Animation {
         return this;
     }
 
+    pause(seconds) {
+        let id = null;
+        this.stop();
+        id = setInterval(() => {
+            this.play();
+            clearInterval(id);
+        }, seconds * 1000);
+        return this;
+    }
+
     loop() {
         const { requestId, prev, callbacks } = this;
 
