@@ -45,7 +45,13 @@ module.exports = {
         port: 3008,
         open: true,
         hot: true,
-        contentBase: path.resolve(__dirname, 'dist') //serve from 'dist' folder
+        contentBase: path.resolve(__dirname, 'dist'), //serve from 'dist' folder
+        stats: {
+            // minimal output on development terminal, show eslint errors and warns, surpress other stats
+            assets: false,
+            children: false,
+            modules: false,
+        },
     },
 
     plugins: [
