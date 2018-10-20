@@ -26,14 +26,50 @@ const State = new StateProvider({
     pixelDensity: 32,
 });
 
-const computeTranslationMatrix = function(transformX, transformY) {
-    const translationMatrix = Matrix4x4.translate(0, 0, 10);
+// render calculations
 
-    let matrix = Matrix4x4.rotateY(transformX * 0.05);
-    matrix = Matrix4x4.multiply(matrix, Matrix4x4.rotateX(transformY * 0.05));
-    matrix = Matrix4x4.multiply(matrix, translationMatrix);
-    return matrix;
+const locatePixel2D = function(x, y, width) {
+    return y * (width * 4) + x * 4;
 };
+
+/**
+ * computes an xy translation matrix
+ */
+const computeTranslationMatrixXY = function(transformX, transformY) {
+    const speed = 0.05;
+    const translationMatrix = Matrix4x4.translate(0, 0, 10); //?
+
+    const rotateY = Matrix4x4.rotateY(transformX * speed); // rotate around y-axis
+    const rotateX = Matrix4x4.rotateX(transformY * speed); // rotate around x-axis
+
+    // order of factors in matrix multiplication matter!
+    const rotateXY = Matrix4x4.multiply(rotateY, rotateX);
+    return Matrix4x4.multiply(rotateXY, translationMatrix);
+};
+
+const applyTranslationMatrix = function(particle, matrix, focalLength, cx, cy) {
+
+    const { x, y, z } = particle;
+
+    // 00 this.I00; 01 this.I01; 02 this.I02; 03 this.I03;
+    // 04 this.I10; 05 this.I11; 06 this.I12; 07 this.I13;
+    // 08 this.I20; 09 this.I21; 10 this.I22; 11 this.I23;
+    // 12 this.I30; 13 this.I31; 14 this.I32; 15 this.I33;
+
+    const pz = focalLength + x * matrix[2] + y * matrix[6] + z * matrix[10] + matrix[14];
+
+    if (pz > 0) {
+        const w = focalLength / pz;
+        const xi = Math.floor(w * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + cx);
+        const yi = Math.floor(w * (x * matrix[1] + y * matrix[5] + z * matrix[9]) + cy);
+        return new Particle(xi, yi, 0); // 2D
+    }
+
+    return null;
+
+};
+
+// compute attractor
 
 const compute = function() {
     const { maxParticles } = State.get();
@@ -88,6 +124,8 @@ const compute = function() {
     return chain;
 };
 
+// render
+
 const update = function(ctx, chain) {
 
     const { count } = animation.getState();
@@ -100,50 +138,32 @@ const update = function(ctx, chain) {
 
     ctx.fillRect(0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
-    const matrix = computeTranslationMatrix(transformX, transformY);
+    const matrix = computeTranslationMatrixXY(transformX, transformY);
 
-    const cx = 275;
-    const cy = 200;//TODO canvas/2?
+    const cx = width / 2;
+    const cy = height / 2;
     // const focalLength = 400;
-
-    let xi = 0;
-    let yi = 0;
-    let w = 0;
-    let x = 0;
-    let y = 0;
-    let z = 0;
-    let pz = 0;
 
     const maxIndex = imageData.data.length; //or: (width * height) * 4
     let index = maxIndex;
 
     let particle;
+    let x;
+    let y;
 
     let i = 0;
     const numParticles = chain.length;
 
     while (i < numParticles) {
-        particle = chain[i];
-        ({ x, y, z } = particle);
+        particle = applyTranslationMatrix(chain[i], matrix, focalLength, cx, cy);
 
-        // 00 this.I00; 01 this.I01; 02 this.I02; 03 this.I03;
-        // 04 this.I10; 05 this.I11; 06 this.I12; 07 this.I13;
-        // 08 this.I20; 09 this.I21; 10 this.I22; 11 this.I23;
-        // 12 this.I30; 13 this.I31; 14 this.I32; 15 this.I33;
-
-        pz = focalLength + x * matrix[2] + y * matrix[6] + z * matrix[10] + matrix[14];
-
-        if (pz > 0) {
-            w = focalLength / pz;
-            xi = Math.floor(w * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + cx);
-            yi = Math.floor(w * (x * matrix[1] + y * matrix[5] + z * matrix[9]) + cy);
-
-            index = (xi + yi * width) * 4; //rgb - red
+        if (particle) {
+            ({ x, y } = particle);
+            index = locatePixel2D(x, y, width);
 
             if (index > -1 && index < maxIndex) {
                 imageData.data[index] += pixelDensity;
             }
-
         }
 
         i += 1;
