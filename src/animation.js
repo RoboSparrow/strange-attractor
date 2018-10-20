@@ -8,6 +8,7 @@ class Animation {
     constructor() {
         this.requestId = -1;
         this.prev = 0;
+        this.running = false;
         this.state = Object.assign({}, _defaults);
         this.callbacks = [];
     }
@@ -32,35 +33,35 @@ class Animation {
     }
 
     stop() {
-        const { requestId } = this;
-
-        if (requestId > 0) {
-            cancelAnimationFrame(requestId);
+        this.running = false;
+        if (this.requestId) {
+            cancelAnimationFrame(this.requestId);
         }
-        this.requestId = -1;
-
         return this;
     }
 
     play() {
-        this.requestId = requestAnimationFrame(this.loop.bind(this));
+        this.running = true;
+        this.requestId = requestAnimationFrame(() => this.loop());
         return this;
     }
 
-    pause(seconds) {
-        let id = null;
+    pause(seconds) { //TODO improve
         this.stop();
+
+        let id = null;
         id = setInterval(() => {
             this.play();
             clearInterval(id);
         }, seconds * 1000);
+
         return this;
     }
 
     loop() {
-        const { requestId, prev, callbacks } = this;
+        const { prev, callbacks } = this;
 
-        if (requestId === -1) {
+        if (!this.running) {
             return;
         }
 
@@ -68,7 +69,7 @@ class Animation {
         const now = Date.now();
         const delta = now - prev; //msec
 
-        if (fps > 0 && delta >= 1000 / fps) {
+        if (!fps || (fps > 0 && delta >= 1000 / fps)) {
             let i;
             const { length } = callbacks;
             for (i = 0; i < length; i += 1) {
@@ -79,7 +80,7 @@ class Animation {
             this.state.count += 1;
         }
 
-        this.requestId = requestAnimationFrame(this.loop.bind(this));
+        this.requestId = requestAnimationFrame(() => this.loop());
     }
 
 }
