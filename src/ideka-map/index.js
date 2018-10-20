@@ -129,7 +129,6 @@ const compute = function(callback) {
 
         worker.addEventListener('error', (error) => {
             index += 1;
-            console.log(error);
             reject(error);
         });
 
