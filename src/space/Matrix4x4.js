@@ -2,12 +2,24 @@
 ////
 //
 // @see http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
+// @see https://github.com/RoboSparrow/Matrix-and-Quaternions-FAQ/blob/master/Matrix%20and%20Quaternion%20FAQ.md
 //
 // | 1  0  0  Tx|   | x |   | x + Tx |
 // | 0  1  0  Ty|   | y |   | y + Ty |
 // | 0  0  1  Tz| x | z | = | z + Tz |
 // | 0  0  0   1|   | 1 |   |   1    |
 //
+// differences to OpenGL
+// In this document (as in most math textbooks), all matrices are drawn in the standard mathematical manner.
+// Unfortunately graphics libraries like IrisGL, OpenGL and SGI's Performer all represent them with the rows and columns swapped.
+// This Document                  OpenGL
+//        | 0  1  2  3  |            | 0  4  8  12 |
+//        |             |            |             |
+//        | 4  5  6  7  |            | 1  5  9  13 |
+//    M = |             |        M = |             |
+//        | 8  9  10 11 |            | 2  6  10 14 |
+//        |             |            |             |
+//        | 12 13 14 15 |            | 3  7  11 15 |
 ////
 
 const idendityMatrix = function() {
