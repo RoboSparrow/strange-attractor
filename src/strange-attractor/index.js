@@ -137,11 +137,6 @@ const update = function(ctx, chain) {
     const { count } = animation.getState();
     const { targetX, targetY, focalLength, pixelDensity, animationMode } = State.get();
 
-    if (count % 100 === 0) {
-        console.log('hi');
-        animation.pause(3);
-    }
-
     const transformX = (animationMode === 'mousemove') ? targetX : count;
     const transformY = (animationMode === 'mousemove') ? targetY : count;
 
