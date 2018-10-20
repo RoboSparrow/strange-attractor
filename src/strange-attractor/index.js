@@ -38,7 +38,6 @@ const locatePixel2D = function(x, y, width) {
 const computeTranslationMatrixXY = function(transformX, transformY) {
     const speed = 0.05;
     const translationMatrix = Matrix4x4.translate(0, 0, 10); //?
-
     const rotateY = Matrix4x4.rotateY(transformX * speed); // rotate around y-axis
     const rotateX = Matrix4x4.rotateX(transformY * speed); // rotate around x-axis
 
@@ -47,25 +46,32 @@ const computeTranslationMatrixXY = function(transformX, transformY) {
     return Matrix4x4.multiply(rotateXY, translationMatrix);
 };
 
-const applyTranslationMatrix = function(particle, matrix, focalLength, cx, cy) {
+const applyTranslationMatrix = function(particle, matrix, focalLength, originX, originY) {
 
     const { x, y, z } = particle;
 
-    // 00 this.I00; 01 this.I01; 02 this.I02; 03 this.I03;
-    // 04 this.I10; 05 this.I11; 06 this.I12; 07 this.I13;
-    // 08 this.I20; 09 this.I21; 10 this.I22; 11 this.I23;
-    // 12 this.I30; 13 this.I31; 14 this.I32; 15 this.I33;
+    // The first three columns of the matrix define the direction vector of the X, Y and Z axii respectively.
+    //
+    // |  0  1  2  3 |    | xX xY xZ  3 |
+    // |  4  5  6  7 | => | yX yY yZ  7 |
+    // |  8  9 10 11 |    | zX zY zZ 11 |
+    // | 12 13 14 15 |    | 12 13 14 15 |
 
+    //z-pos
     const pz = focalLength + x * matrix[2] + y * matrix[6] + z * matrix[10] + matrix[14];
 
-    if (pz > 0) {
-        const w = focalLength / pz;
-        const xi = Math.floor(w * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + cx);
-        const yi = Math.floor(w * (x * matrix[1] + y * matrix[5] + z * matrix[9]) + cy);
-        return new Particle(xi, yi, 0); // 2D
+    if (pz <= 0) {
+        // consider only points in front of camera
+        return null;
     }
 
-    return null;
+    const w = focalLength / pz;
+    // with matrix X-coordinates
+    const xi = Math.floor(w * (x * matrix[0] + y * matrix[4] + z * matrix[8]) + originX);
+    // with matrix Y-coordinates
+    const yi = Math.floor(w * (x * matrix[1] + y * matrix[5] + z * matrix[9]) + originY);
+
+    return new Particle(xi, yi, 0); // 2D
 
 };
 
@@ -140,8 +146,8 @@ const update = function(ctx, chain) {
     const imageData = ctx.getImageData(0, 0, width, height);
     const matrix = computeTranslationMatrixXY(transformX, transformY);
 
-    const cx = width / 2;
-    const cy = height / 2;
+    const originX = width / 2;
+    const originY = height / 2;
     // const focalLength = 400;
 
     const maxIndex = imageData.data.length; //or: (width * height) * 4
@@ -155,7 +161,7 @@ const update = function(ctx, chain) {
     const numParticles = chain.length;
 
     while (i < numParticles) {
-        particle = applyTranslationMatrix(chain[i], matrix, focalLength, cx, cy);
+        particle = applyTranslationMatrix(chain[i], matrix, focalLength, originX, originY); // cameraa?
 
         if (particle) {
             ({ x, y } = particle);
