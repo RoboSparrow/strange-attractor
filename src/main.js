@@ -9,6 +9,8 @@ import LogisticMap from './components/LogisticMap';
 import IdekaMap from './components/IdekaMap';
 import GingerbreadmanMap from './components/GingerbreadmanMap';
 import SprottsQuadraticMaps from './components/SprottsQuadraticMaps';
+import CatMap from './cat-map/component';
+// import RoesslerAttractor from './roessler-attractor/component';
 
 const Button = {
     view: function(vnode) {
@@ -36,6 +38,8 @@ const Menu = {
             m(Button, { href: '/ideka-map', title: 'Ideka Map' }),
             m(Button, { href: '/gingerbreadman-map', title: 'Gingerbreadman Map' }),
             m(Button, { href: '/sprotts-quadratic-maps', title: 'Sprott\'s Quadratic Maps' }),
+            // m(Button, { href: '/roessler-attractor', title: 'Roessler Attractor' }),
+            m(Button, { href: '/cat-map', title: 'Arnold\'s Cat Map' }),
         ]);
     },
 };
@@ -64,6 +68,8 @@ m.route(root, '/strange-attractor', {
     '/ideka-map': masonry('#plotter', IdekaMap),
     '/gingerbreadman-map': masonry('#plotter', GingerbreadmanMap),
     '/sprotts-quadratic-maps': masonry('#plotter', SprottsQuadraticMaps),
+    // '/roessler-attractor': masonry('#plotter', RoesslerAttractor),
+    '/cat-map': masonry('#plotter', CatMap),
 });
 
 // });
