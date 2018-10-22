@@ -33,6 +33,10 @@ module.exports = {
             test: /\.css$/,
             use: [ 'style-loader', 'css-loader' ]
         }, {
+            // file-loader
+            test: /\.(png|svg|jpg|gif)$/,
+            use: [ 'file-loader' ]
+        }, {
             // worker-loader
             test: /\.worker\.js$/,
             use: { loader: 'worker-loader' },
