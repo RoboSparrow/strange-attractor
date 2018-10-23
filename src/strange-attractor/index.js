@@ -187,8 +187,6 @@ const plot = function(ctx) {
 const init = function(container) {
     const canvas = initCanvas(container);
     const { ctx } = contextHelper(canvas).clear('#101010');
-    animation.throttle(32);
-
     const { animationMode, targetX, targetY } = State.get();
 
     canvas.addEventListener('mousemove', (e) => {
@@ -203,6 +201,8 @@ const init = function(container) {
         });
 
     }, false);
+
+    animation.throttle(32);
 
     return {
         getState: State.get,
