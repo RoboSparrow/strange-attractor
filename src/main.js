@@ -28,7 +28,7 @@ const Button = {
 };
 
 class Menu {
-    view () {
+    view() {
         return m('nav', { className: 'mui-panel' }, [
             m(Button, { href: '/', title: 'Home' }),
             m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),

@@ -14,20 +14,22 @@ document.addEventListener('CatMap:updated', () => {
     }
 });
 
-/* eslint-disable class-methods-use-this */
 class CatMap {
     oninit() {
         plotter = init('#plotter');
-        plotter.plot();
     }
 
     view() { //
         return m('form', { className: 'mui-form' }, [
-            m('[style="font-size: 2em;"]', state.step || 0),
+            m('[style="font-weight:bold"]', `iteration: ${state.step || 0}`),
+            m('', [
+                m('span.mui-btn.mui-btn--large.mui-btn--primary.mui-btn--raised', {
+                    onclick: () => plotter.plot()
+                }, 'Play'),
+            ]),
+            m('hr'),
             m(Dev, {
-                data: {
-                    step: state.step,
-                },
+                data: state,
             }),
         ]);
     }

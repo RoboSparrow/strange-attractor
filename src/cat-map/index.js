@@ -1,7 +1,8 @@
 /**
  * @see https://en.wikipedia.org/wiki/Arnold%27s_cat_map
- * note: cat map images need to e quadratic: "...on a circular ring with circumference N"
+ * note: cat map images need to be quadratic: "...on a circular ring with circumference N"
  */
+import Worker from './compute.worker';
 import animation from '../animation';
 
 import initCanvas, { contextHelper } from '../canvas';
@@ -13,74 +14,71 @@ const UpdateEvent = new Event('CatMap:updated');
 // state
 
 const State = new StateProvider({
-    // henon map algorithm params
     imgSrc: CatImage,
 
     step: 0,
+    interval: 10,
 });
 
-const locatePixel2D = function(x, y, width) {
-    return y * (width * 4) + x * 4;
+const worker = new Worker();
+let originalPixelData;
+
+// algorithm
+
+const compute = function(ctx) {
+
+    const state = State.get();
+
+    const { width, height } = ctx.canvas;
+    const pixelData = ctx.getImageData(0, 0, width, height).data;
+
+    if (state.step === 0) {
+        originalPixelData = pixelData;
+    }
+    const id = performance.now();
+
+    return new Promise((resolve, reject) => {
+
+        worker.addEventListener('message', (e) => {
+            // todo track progress
+            if (e.data.id !== id) {
+                return;
+            }
+            resolve(e.data.pixelData);
+        });
+
+        worker.addEventListener('error', (error) => {
+            reject(error);
+        });
+
+        worker.postMessage({
+            id,
+            state,
+            width,
+            height,
+            pixelData,
+            originalPixelData,
+            restored: false, // always
+        });
+    });
+
 };
 
-const update = function(ctx) {
-
-    const { u8, step } = State.get();
+const update = function(ctx, pixelData) {
+    const { step, interval } = State.get();
     const { width, height } = ctx.canvas;
+    const { next, restored } = pixelData;
 
     const imageData = ctx.getImageData(0, 0, width, height);
-    const prev = imageData.data;
-    const next = new Uint8ClampedArray(prev.length);
 
-    // on first hit store original imgdata
-    if (!u8) {
-        State.set({
-            u8: prev.toString(),
-        });
-    }
-
-    let x;
-    let y;
-    let xNext;
-    let yNext;
-
-    //red pixel location in imgdata
-    let c; // current
-    let n; // next
-
-    for (y = 0; y < height; y += 1) {
-        for (x = 0; x < width; x += 1) {
-
-            // cat map!
-            xNext = (2 * x + y) % width;
-            yNext = (x + y) % height;
-
-            c = locatePixel2D(x, y, width);
-            n = locatePixel2D(xNext, yNext, height);
-
-            next[c] = prev[n];
-            next[c + 1] = prev[n + 1];
-            next[c + 2] = prev[n + 2];
-            next[c + 3] = prev[n + 3];
-        }
-    }
-
-    ctx.fillRect(0, 0, width, height);
     imageData.data.set(next);
     ctx.putImageData(imageData, 0, 0);
 
     State.set({ step: step + 1 });
-
-    // first time
-    if (!step) {
-        setTimeout(() => update(ctx), 10);
-        return;
-    }
-
-    // stop if original image is restored
-    if (next.toString() !== u8) {
-        // TODO use animate
-        setTimeout(() => update(ctx), 10);
+    console.log(restored);
+    if (!restored) {
+        setTimeout(() => compute(ctx)
+            .then(pixels => update(ctx, pixels)), interval);
     }
 
     document.dispatchEvent(UpdateEvent);
@@ -97,7 +95,7 @@ const loadImage = function(imgSrc, ctx) {
             ctx.canvas.width = squared;
             ctx.canvas.height = squared;
 
-            ctx.drawImage(this, 0, 0, squared, squared, 0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.drawImage(this, 0, 0, squared, squared, 0, 0, squared, squared);
             resolve(this);
         };
         img.onerror = function(error) {
@@ -108,22 +106,25 @@ const loadImage = function(imgSrc, ctx) {
 };
 
 const plot = function(ctx) {
-    animation.stop();
     contextHelper(ctx)
         .clear('#101010')
         .progress('computing..', '#ff0000');
 
     const { imgSrc } = State.get();
+    State.set({ step: 0 });// reset counter
 
     return loadImage(imgSrc, ctx)
-        .then(() => update(ctx));
+        .then(() => compute(ctx))
+        .then(pixelData => update(ctx, pixelData));
 };
 
 const init = function(container = document.body) {
     const canvas = initCanvas(container);
     const { ctx } = contextHelper(canvas).clear('#101010');
+    const { imgSrc } = State.get();
 
     animation.stop();
+    loadImage(imgSrc, ctx);
 
     return {
         getState: State.get,
