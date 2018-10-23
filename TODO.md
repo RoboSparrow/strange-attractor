@@ -8,12 +8,14 @@ Attractors
 - sprotts qmaps: orientation, x,y min-max, center
 - ~~isFinite() for infinity check~~
 
--lorenz attractor: z-dimension (computed, but not rendered)
+- lorenz attractor: z-dimension (computed, but not rendered)
 
 Mithril
 
 - components: one syntax: class
 - rangeslider init position not value like!
+- do not construct workers in cllbacks
+- move components into attractor folders
 
 Misc
 

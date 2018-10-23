@@ -142,8 +142,7 @@ const compute = function(callback) {
 const plot = function(ctx) {
     animation.stop();
     contextHelper(ctx)
-        .clear('#101010')
-        .progress('computing..', '#ff0000');
+        .clear('#101010');
 
     return compute((chain, index) => {
         update(ctx, chain, index);
