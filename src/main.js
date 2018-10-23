@@ -27,8 +27,8 @@ const Button = {
 
 };
 
-const Menu = {
-    view: function() {
+class Menu {
+    view () {
         return m('nav', { className: 'mui-panel' }, [
             m(Button, { href: '/', title: 'Home' }),
             m(Button, { href: '/strange-attractor', title: 'Strange Attractor' }),
@@ -41,8 +41,8 @@ const Menu = {
             // m(Button, { href: '/roessler-attractor', title: 'Roessler Attractor' }),
             m(Button, { href: '/cat-map', title: 'Arnold\'s Cat Map' }),
         ]);
-    },
-};
+    }
+}
 
 const masonry = function(leftComponent, rightComponent) {
     return {
