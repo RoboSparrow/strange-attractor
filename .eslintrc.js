@@ -49,11 +49,18 @@ module.exports = {
             'LabeledStatement',
             'WithStatement',
         ],
-        'object-curly-newline': [ "error", {
+        'object-curly-newline': [ 'error', {
             // configuration for object patterns of destructuring assignments
-            "ObjectPattern": {
-                "minProperties": 10
+            'ObjectPattern': {
+                'minProperties': 10
             },
         }],
+
+        // mithril specific
+        'class-methods-use-this': ['warn', {
+            exceptMethods: [
+                'view', 'oninit', 'oncreate', 'onupdate', 'onbeforeremove', 'onremove', 'onbeforeupdate',
+            ],
+        }]
     }
 };
