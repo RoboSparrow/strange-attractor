@@ -31,6 +31,7 @@
     "start": "npm run dev",
     "dev": "webpack-dev-server --mode development --config webpack.config.js",
     "build": "webpack -p --progress --mode production --config webpack.config.js",
+    "lint": "eslint src/**/*.js",
     "test": "mocha-webpack 'test/*.js'"
   }
 }
