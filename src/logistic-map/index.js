@@ -1,7 +1,6 @@
 /**
- * @see http://mathworld.wolfram.com/HenonMap.html
- * @see https://www.dreamincode.net/forums/topic/365205-Henon-Map/
- * @see https://www.rdocumentation.org/packages/nonlinearTseries/versions/0.2.4/topics/henon
+ * @see http://mathworld.wolfram.com/LogisticMap.html
+ * @see http://en.wikipedia.org/wiki/Logistic_map
  */
 import compute from './compute';
 import animation from '../animation';

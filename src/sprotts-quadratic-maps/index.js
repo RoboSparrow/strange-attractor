@@ -1,6 +1,6 @@
 /**
- * @see http://mathworld.wolfram.com/StrangeAttractor.html
  * @see http://sprott.physics.wisc.edu/
+ * @see http://mathworld.wolfram.com/StrangeAttractor.html
  */
 import Worker from './compute.worker';
 import animation from '../animation';

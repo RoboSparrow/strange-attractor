@@ -19,7 +19,7 @@ class CatMap {
         plotter = init('#plotter');
     }
 
-    view() { //
+    view() {
         return m('form', { className: 'mui-form' }, [
             m('[style="font-weight:bold"]', `iteration: ${state.step || 0}`),
             m('', [

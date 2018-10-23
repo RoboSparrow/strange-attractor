@@ -1,7 +1,6 @@
 /**
- * @see http://mathworld.wolfram.com/HenonMap.html
- * @see https://www.dreamincode.net/forums/topic/365205-Henon-Map/
- * @see https://www.rdocumentation.org/packages/nonlinearTseries/versions/0.2.4/topics/henon
+ * @see https://en.wikipedia.org/wiki/Lorenz_system
+ * @see http://mathworld.wolfram.com/LorenzAttractor.html
  */
 import Worker from './compute.worker';
 import animation from '../animation';

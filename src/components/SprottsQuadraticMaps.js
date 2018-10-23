@@ -40,7 +40,7 @@ class RandomPattern {
 }
 
 class PatternInput {
-    view(vnode) { // eslint-disable-line class-methods-use-this
+    view(vnode) {
         const { plotter } = vnode.attrs;
         const { pattern } = plotter.getState();
 
