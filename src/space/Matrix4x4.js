@@ -49,11 +49,22 @@ const nullMatrix = function() {
     return new Float32Array(16);
 };
 
+const matrix = function(...args) {
+    if (!args.length) {
+        return idendityMatrix();
+    }
+    if (typeof args[0] === 'number') {
+        return new Float32Array(args[0]);
+    }
+    return new Float32Array(args[0]);
+};
+
 const Matrix4x4 = {
 
-    translate: function(x, y, z) {
+    create: matrix,
 
-        const m = idendityMatrix();
+    translate: function(x, y, z, m) {
+        m = m || idendityMatrix();
 
         m[3] = x;
         m[7] = y;
@@ -62,9 +73,9 @@ const Matrix4x4 = {
         return m;
     },
 
-    rotateX: function(rad) {
+    rotateX: function(rad, m) {
+        m = m || idendityMatrix();
 
-        const m = idendityMatrix();
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
 
@@ -76,9 +87,9 @@ const Matrix4x4 = {
         return m;
     },
 
-    rotateY: function(rad) {
+    rotateY: function(rad, m) {
+        m = m || idendityMatrix();
 
-        const m = idendityMatrix();
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
 
@@ -98,9 +109,8 @@ const Matrix4x4 = {
     //        |             |         |            |
     //        | 12 13 14 15 |         | 0  0  0  1 |
 
-    scale: function(xScale = 1, yScale = 1, zScale = 1) {
-
-        const m = idendityMatrix();
+    scale: function(xScale, yScale, zScale, m) {
+        m = m || idendityMatrix();
 
         m[0] = xScale;
         m[5] = yScale;
@@ -139,9 +149,9 @@ const Matrix4x4 = {
     // Multiply a vector array [x,y,z] into am matrix
     // rule: multiply row into column and sum the result
     // todo automate in general for different matrices (flexible col number)
+    // @returns {[x, y, z]} vector
 
-    multiplyVector: function(xyz, m) {
-        const [x, y, z] = xyz;
+    multiplyVector: function(x, y, z, m) {
         const w = 1;
         m = m || idendityMatrix();
         return [
@@ -154,40 +164,204 @@ const Matrix4x4 = {
     // converted from http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
 
     determinant: function(m) {
-        const rd = m[3] * m[6] * m[9] * m[12] - m[2] * m[7] * m[9] * m[12] - m[3] * m[5] * m[10] * m[12] + m[1] * m[7] * m[10] * m[12]
-            + m[2] * m[5] * m[11] * m[12] - m[1] * m[6] * m[11] * m[12] - m[3] * m[6] * m[8] * m[13] + m[2] * m[7] * m[8] * m[13]
-            + m[3] * m[4] * m[10] * m[13] - m[0] * m[7] * m[10] * m[13] - m[2] * m[4] * m[11] * m[13] + m[0] * m[6] * m[11] * m[13]
-            + m[3] * m[5] * m[8] * m[14] - m[1] * m[7] * m[8] * m[14] - m[3] * m[4] * m[9] * m[14] + m[0] * m[7] * m[9] * m[14]
-            + m[1] * m[4] * m[11] * m[14] - m[0] * m[5] * m[11] * m[14] - m[2] * m[5] * m[8] * m[15] + m[1] * m[6] * m[8] * m[15]
-            + m[2] * m[4] * m[9] * m[15] - m[0] * m[6] * m[9] * m[15] - m[1] * m[4] * m[10] * m[15] + m[0] * m[5] * m[10] * m[15];
-        return rd;
+        const d = m[3] * m[6] * m[9] * m[12]
+        - m[2] * m[7] * m[9] * m[12]
+        - m[3] * m[5] * m[10] * m[12]
+        + m[1] * m[7] * m[10] * m[12]
+        + m[2] * m[5] * m[11] * m[12]
+        - m[1] * m[6] * m[11] * m[12]
+        - m[3] * m[6] * m[8] * m[13]
+        + m[2] * m[7] * m[8] * m[13]
+        + m[3] * m[4] * m[10] * m[13]
+        - m[0] * m[7] * m[10] * m[13]
+        - m[2] * m[4] * m[11] * m[13]
+        + m[0] * m[6] * m[11] * m[13]
+        + m[3] * m[5] * m[8] * m[14]
+        - m[1] * m[7] * m[8] * m[14]
+        - m[3] * m[4] * m[9] * m[14]
+        + m[0] * m[7] * m[9] * m[14]
+        + m[1] * m[4] * m[11] * m[14]
+        - m[0] * m[5] * m[11] * m[14]
+        - m[2] * m[5] * m[8] * m[15]
+        + m[1] * m[6] * m[8] * m[15]
+        + m[2] * m[4] * m[9] * m[15]
+        - m[0] * m[6] * m[9] * m[15]
+        - m[1] * m[4] * m[10] * m[15]
+        + m[0] * m[5] * m[10] * m[15];
+        return d;
     },
 
     // converted from http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
 
     invert: function(m) {
         const r = nullMatrix(); //TODO or empty
-        r[0] = m[6] * m[11] * m[13] - m[7] * m[10] * m[13] + m[7] * m[9] * m[14] - m[5] * m[11] * m[14] - m[6] * m[9] * m[15] + m[5] * m[10] * m[15];
-        r[1] = m[3] * m[10] * m[13] - m[2] * m[11] * m[13] - m[3] * m[9] * m[14] + m[1] * m[11] * m[14] + m[2] * m[9] * m[15] - m[1] * m[10] * m[15];
-        r[2] = m[2] * m[7] * m[13] - m[3] * m[6] * m[13] + m[3] * m[5] * m[14] - m[1] * m[7] * m[14] - m[2] * m[5] * m[15] + m[1] * m[6] * m[15];
-        r[3] = m[3] * m[6] * m[9] - m[2] * m[7] * m[9] - m[3] * m[5] * m[10] + m[1] * m[7] * m[10] + m[2] * m[5] * m[11] - m[1] * m[6] * m[11];
-        r[4] = m[7] * m[10] * m[12] - m[6] * m[11] * m[12] - m[7] * m[8] * m[14] + m[4] * m[11] * m[14] + m[6] * m[8] * m[15] - m[4] * m[10] * m[15];
-        r[5] = m[2] * m[11] * m[12] - m[3] * m[10] * m[12] + m[3] * m[8] * m[14] - m[0] * m[11] * m[14] - m[2] * m[8] * m[15] + m[0] * m[10] * m[15];
-        r[6] = m[3] * m[6] * m[12] - m[2] * m[7] * m[12] - m[3] * m[4] * m[14] + m[0] * m[7] * m[14] + m[2] * m[4] * m[15] - m[0] * m[6] * m[15];
-        r[7] = m[2] * m[7] * m[8] - m[3] * m[6] * m[8] + m[3] * m[4] * m[10] - m[0] * m[7] * m[10] - m[2] * m[4] * m[11] + m[0] * m[6] * m[11];
-        r[8] = m[5] * m[11] * m[12] - m[7] * m[9] * m[12] + m[7] * m[8] * m[13] - m[4] * m[11] * m[13] - m[5] * m[8] * m[15] + m[4] * m[9] * m[15];
-        r[9] = m[3] * m[9] * m[12] - m[1] * m[11] * m[12] - m[3] * m[8] * m[13] + m[0] * m[11] * m[13] + m[1] * m[8] * m[15] - m[0] * m[9] * m[15];
-        r[10] = m[1] * m[7] * m[12] - m[3] * m[5] * m[12] + m[3] * m[4] * m[13] - m[0] * m[7] * m[13] - m[1] * m[4] * m[15] + m[0] * m[5] * m[15];
-        r[11] = m[3] * m[5] * m[8] - m[1] * m[7] * m[8] - m[3] * m[4] * m[9] + m[0] * m[7] * m[9] + m[1] * m[4] * m[11] - m[0] * m[5] * m[11];
-        r[12] = m[6] * m[9] * m[12] - m[5] * m[10] * m[12] - m[6] * m[8] * m[13] + m[4] * m[10] * m[13] + m[5] * m[8] * m[14] - m[4] * m[9] * m[14];
-        r[13] = m[1] * m[10] * m[12] - m[2] * m[9] * m[12] + m[2] * m[8] * m[13] - m[0] * m[10] * m[13] - m[1] * m[8] * m[14] + m[0] * m[9] * m[14];
-        r[14] = m[2] * m[5] * m[12] - m[1] * m[6] * m[12] - m[2] * m[4] * m[13] + m[0] * m[6] * m[13] + m[1] * m[4] * m[14] - m[0] * m[5] * m[14];
-        r[15] = m[1] * m[6] * m[8] - m[2] * m[5] * m[8] + m[2] * m[4] * m[9] - m[0] * m[6] * m[9] - m[1] * m[4] * m[10] + m[0] * m[5] * m[10];
+        const d = Matrix4x4.determinant(m);
+        // TODO handle zero determinant
 
-        const d = Matrix4x4.determinant(r);
-        return Matrix4x4.scale(1 / d);
+        // last[0] = input.m11.value;
+        // last[1] = input.m12.value;
+        // last[2] = input.m13.value;
+        // last[3] = input.m14.value;
+        // last[4] = input.m21.value;
+        // last[5] = input.m22.value;
+        // last[6] = input.m23.value;
+        // last[7] = input.m24.value;
+        // last[8] = input.m31.value;
+        // last[9] = input.m32.value;
+        // last[10] = input.m33.value;
+        // last[11] = input.m34.value;
+        // last[12] = input.m41.value;
+        // last[13] = input.m42.value;
+        // last[14] = input.m43.value;
+        // last[15] = input.m44.value;
+
+        r[0] = (
+            m[6] * m[11] * m[13]
+            - m[7] * m[10] * m[13]
+            + m[7] * m[9] * m[14]
+            - m[5] * m[11] * m[14]
+            - m[6] * m[9] * m[15]
+            + m[5] * m[10] * m[15]
+        ) / d;
+
+        r[1] = (
+            m[3] * m[10] * m[13]
+            - m[2] * m[11] * m[13]
+            - m[3] * m[9] * m[14]
+            + m[1] * m[11] * m[14]
+            + m[2] * m[9] * m[15]
+            - m[1] * m[10] * m[15]
+        ) / d;
+
+        r[2] = (
+            m[2] * m[7] * m[13]
+            - m[3] * m[6] * m[13]
+            + m[3] * m[5] * m[14]
+            - m[1] * m[7] * m[14]
+            - m[2] * m[5] * m[15]
+            + m[1] * m[6] * m[15]
+        ) / d;
+
+        r[3] = (
+            m[3] * m[6] * m[9]
+            - m[2] * m[7] * m[9]
+            - m[3] * m[5] * m[10]
+            + m[1] * m[7] * m[10]
+            + m[2] * m[5] * m[11]
+            - m[1] * m[6] * m[11]
+        ) / d;
+
+        r[4] = (
+            m[7] * m[10] * m[12]
+            - m[6] * m[11] * m[12]
+            - m[7] * m[8] * m[14]
+            + m[4] * m[11] * m[14]
+            + m[6] * m[8] * m[15]
+            - m[4] * m[10] * m[15]
+        ) / d;
+
+        r[5] = (
+            m[2] * m[11] * m[12]
+            - m[3] * m[10] * m[12]
+            + m[3] * m[8] * m[14]
+            - m[0] * m[11] * m[14]
+            - m[2] * m[8] * m[15]
+            + m[0] * m[10] * m[15]
+        ) / d;
+
+        r[6] = (
+            m[3] * m[6] * m[12]
+            - m[2] * m[7] * m[12]
+            - m[3] * m[4] * m[14]
+            + m[0] * m[7] * m[14]
+            + m[2] * m[4] * m[15]
+            - m[0] * m[6] * m[15]
+        ) / d;
+
+        r[7] = (
+            m[2] * m[7] * m[8]
+            - m[3] * m[6] * m[8]
+            + m[3] * m[4] * m[10]
+            - m[0] * m[7] * m[10]
+            - m[2] * m[4] * m[11]
+            + m[0] * m[6] * m[11]
+        ) / d;
+
+        r[8] = (
+            m[5] * m[11] * m[12]
+            - m[7] * m[9] * m[12]
+            + m[7] * m[8] * m[13]
+            - m[4] * m[11] * m[13]
+            - m[5] * m[8] * m[15]
+            + m[4] * m[9] * m[15]
+        ) / d;
+
+        r[9] = (
+            m[3] * m[9] * m[12]
+            - m[1] * m[11] * m[12]
+            - m[3] * m[8] * m[13]
+            + m[0] * m[11] * m[13]
+            + m[1] * m[8] * m[15]
+            - m[0] * m[9] * m[15]
+        ) / d;
+
+        r[10] = (
+            m[1] * m[7] * m[12]
+            - m[3] * m[5] * m[12]
+            + m[3] * m[4] * m[13]
+            - m[0] * m[7] * m[13]
+            - m[1] * m[4] * m[15]
+            + m[0] * m[5] * m[15]
+        ) / d;
+
+        r[11] = (
+            m[3] * m[5] * m[8]
+            - m[1] * m[7] * m[8]
+            - m[3] * m[4] * m[9]
+            + m[0] * m[7] * m[9]
+            + m[1] * m[4] * m[11]
+            - m[0] * m[5] * m[11]
+        ) / d;
+
+        r[12] = (
+            m[6] * m[9] * m[12]
+            - m[5] * m[10] * m[12]
+            - m[6] * m[8] * m[13]
+            + m[4] * m[10] * m[13]
+            + m[5] * m[8] * m[14]
+            - m[4] * m[9] * m[14]
+        ) / d;
+
+        r[13] = (
+            m[1] * m[10] * m[12]
+            - m[2] * m[9] * m[12]
+            + m[2] * m[8] * m[13]
+            - m[0] * m[10] * m[13]
+            - m[1] * m[8] * m[14]
+            + m[0] * m[9] * m[14]
+        ) / d;
+
+        r[14] = (
+            m[2] * m[5] * m[12]
+            - m[1] * m[6] * m[12]
+            - m[2] * m[4] * m[13]
+            + m[0] * m[6] * m[13]
+            + m[1] * m[4] * m[14]
+            - m[0] * m[5] * m[14]
+        ) / d;
+
+        r[15] = (
+            m[1] * m[6] * m[8]
+            - m[2] * m[5] * m[8]
+            + m[2] * m[4] * m[9]
+            - m[0] * m[6] * m[9]
+            - m[1] * m[4] * m[10]
+            + m[0] * m[5] * m[10]
+        ) / d;
+
+        return r;
     }
 
 };
 
-export { Matrix4x4 as default, idendityMatrix, nullMatrix };
+export { Matrix4x4 as default, idendityMatrix, nullMatrix, matrix };
