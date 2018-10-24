@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "based on strange attractor script from mrdoob",
   "devDependencies": {
+    "chai": "^4.2.0",
     "clean-webpack-plugin": "^0.1.19",
     "cross-env": "^5.2.0",
     "css-loader": "^1.0.0",
