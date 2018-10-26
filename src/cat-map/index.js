@@ -18,6 +18,8 @@ const State = new StateProvider({
 
     step: 0,
     interval: 10,
+    targetStep: -1,
+    reversingAt: -1, // to be computed
 });
 
 const worker = new Worker();
@@ -64,8 +66,18 @@ const compute = function(ctx) {
 
 };
 
+const hasNextLoop = function(targetStep, step, restored) {
+    if (targetStep <= 0 && !restored) {
+        return true;
+    }
+    if (step < targetStep - 1 && !restored) {
+        return true;
+    }
+    return false;
+};
+
 const update = function(ctx, pixelData) {
-    const { step, interval } = State.get();
+    const { step, interval, targetStep } = State.get();
     const { width, height } = ctx.canvas;
     const { next, restored } = pixelData;
 
@@ -74,12 +86,19 @@ const update = function(ctx, pixelData) {
     imageData.data.set(next);
     ctx.putImageData(imageData, 0, 0);
 
-    State.set({ step: step + 1 });
-    console.log(restored);
-    if (!restored) {
+    if (restored) {
+        // set reverse point
+        State.set({ reversingAt: step });
+    }
+
+    const nextLoop = hasNextLoop(targetStep, step, restored);
+
+    if (nextLoop) {
         setTimeout(() => compute(ctx)
             .then(pixels => update(ctx, pixels)), interval);
     }
+
+    State.set({ step: step + 1 });
 
     document.dispatchEvent(UpdateEvent);
 };
@@ -111,7 +130,9 @@ const plot = function(ctx) {
         .progress('computing..', '#ff0000');
 
     const { imgSrc } = State.get();
-    State.set({ step: 0 });// reset counter
+    State.set({
+        step: 0,
+    });// reset counter
 
     return loadImage(imgSrc, ctx)
         .then(() => compute(ctx))
