@@ -11,6 +11,35 @@ import StateProvider from '../state';
 import CatImage from '../images/cat.jpg';
 
 const UpdateEvent = new Event('CatMap:updated');
+
+
+const _Cache = {
+    imgSrc: '',
+    frames: [],
+};
+
+const hasCache = function(imgSrc, frame = -1) {
+    if (frame < 0) {
+        return imgSrc === _Cache.imgSrc;
+    }
+    return imgSrc === _Cache.imgSrc && typeof _Cache.frames[frame] !== 'undefined';
+};
+
+const getCache = function(imgSrc, frame) {
+    return (hasCache(imgSrc, frame)) ? _Cache.frames[frame] : null;
+};
+
+const setCache = function(imgSrc, frame, data) {
+    if (imgSrc === _Cache.imgSrc) {
+        _Cache.frames[frame] = data;
+    }
+};
+
+const initCache = function(imgSrc) {
+    _Cache.imgSrc = imgSrc;
+    _Cache.frames = [];
+};
+
 // state
 
 const State = new StateProvider({
@@ -30,11 +59,18 @@ let originalPixelData;
 const compute = function(ctx) {
 
     const state = State.get();
+    const { step, imgSrc } = state;
+
+    const cached = hasCache(imgSrc, step);
+
+    if (cached) {
+        return Promise.resolve(getCache(imgSrc, step));
+    }
 
     const { width, height } = ctx.canvas;
     const pixelData = ctx.getImageData(0, 0, width, height).data;
 
-    if (state.step === 0) {
+    if (step === 0) {
         originalPixelData = pixelData;
     }
     const id = performance.now();
@@ -46,6 +82,8 @@ const compute = function(ctx) {
             if (e.data.id !== id) {
                 return;
             }
+
+            setCache(imgSrc, step, e.data.pixelData);
             resolve(e.data.pixelData);
         });
 
@@ -87,6 +125,9 @@ const update = function(ctx, pixelData) {
     ctx.putImageData(imageData, 0, 0);
 
     if (restored) {
+        // if (typeof window.performance.memory !== 'undefined') {
+        //     console.log(window.performance.memory);
+        // }
         // set reverse point
         State.set({ reversingAt: step });
     }
@@ -134,6 +175,13 @@ const plot = function(ctx) {
         step: 0,
     });// reset counter
 
+    const cached = hasCache(imgSrc);
+    if (cached) {
+        return compute(ctx)
+            .then(pixelData => update(ctx, pixelData));
+    }
+
+    initCache(imgSrc);
     return loadImage(imgSrc, ctx)
         .then(() => compute(ctx))
         .then(pixelData => update(ctx, pixelData));
