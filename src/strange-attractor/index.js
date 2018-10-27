@@ -187,9 +187,10 @@ const plot = function(ctx) {
 const init = function(container) {
     const canvas = initCanvas(container);
     const { ctx } = contextHelper(canvas).clear('#101010');
-    const { animationMode, targetX, targetY } = State.get();
 
     canvas.addEventListener('mousemove', (e) => {
+
+        const { animationMode, targetX, targetY } = State.get();
 
         if (animationMode !== 'mousemove') {
             return;
