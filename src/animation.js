@@ -10,7 +10,7 @@ class Animation {
         this.prev = 0;
         this.running = false;
         this.state = Object.assign({}, _defaults);
-        this.callbacks = [];
+        this.callback = null;
     }
 
     setState(options) {
@@ -28,7 +28,7 @@ class Animation {
     }
 
     assign(fn) {
-        this.callbacks.push(fn);
+        this.callback = fn;
         return this;
     }
 
@@ -59,7 +59,7 @@ class Animation {
     }
 
     loop() {
-        const { prev, callbacks } = this;
+        const { prev, callback } = this;
 
         if (!this.running) {
             return;
@@ -70,11 +70,7 @@ class Animation {
         const delta = now - prev; //msec
 
         if (!fps || (fps > 0 && delta >= 1000 / fps)) {
-            let i;
-            const { length } = callbacks;
-            for (i = 0; i < length; i += 1) {
-                callbacks[i]();
-            }
+            callback();
 
             this.prev = now;
             this.state.count += 1;
