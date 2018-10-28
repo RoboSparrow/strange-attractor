@@ -41,17 +41,24 @@ class Context2d {
         return this;
     }
 
-    progress(message, color = '') {
+    progress(message, color = '', bgColor = '') {
         const { ctx } = this;
         const { width, height } = ctx.canvas;
 
         ctx.save();
-        if (color) {
-            ctx.fillStyle = color;
-        }
+
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        if (bgColor) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        if (color) {
+            ctx.fillStyle = color;
+        }
         ctx.fillText(message, width / 2, height / 2);
         ctx.restore();
 
