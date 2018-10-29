@@ -10,35 +10,8 @@ import StateProvider from '../state';
 
 import CatImage from '../images/cat.jpg';
 
-const UpdateEvent = new Event('CatMap:updated');
-
-
-const _Cache = {
-    imgSrc: '',
-    frames: [],
-};
-
-const hasCache = function(imgSrc, frame = -1) {
-    if (frame < 0) {
-        return imgSrc === _Cache.imgSrc;
-    }
-    return imgSrc === _Cache.imgSrc && typeof _Cache.frames[frame] !== 'undefined';
-};
-
-const getCache = function(imgSrc, frame) {
-    return (hasCache(imgSrc, frame)) ? _Cache.frames[frame] : null;
-};
-
-const setCache = function(imgSrc, frame, data) {
-    if (imgSrc === _Cache.imgSrc) {
-        _Cache.frames[frame] = data;
-    }
-};
-
-const initCache = function(imgSrc) {
-    _Cache.imgSrc = imgSrc;
-    _Cache.frames = [];
-};
+const UpdatedEvent = new Event('CatMap:updated');
+const ComputedEvent = new Event('CatMap:computed');
 
 // state
 
@@ -46,34 +19,67 @@ const State = new StateProvider({
     imgSrc: CatImage,
 
     step: 0,
-    interval: 10,
-    targetStep: -1,
-    reversingAt: -1, // to be computed
+    interval: 24,
+    targetStep: 0,
+    reversingAt: 0,
+    paused: false, // use only for notifying component
 });
 
 const worker = new Worker();
-let originalPixelData;
+
+// single item cache
+
+const _Cache = {
+    imgSrc: '',
+    cycle: [],
+};
+
+const hasCache = function(imgSrc) {
+    return imgSrc === _Cache.imgSrc && _Cache.cycle.length;
+};
+
+const getCache = function(imgSrc) {
+    return (hasCache(imgSrc)) ? _Cache.cycle : null;
+};
+
+const setCache = function(imgSrc, cycle) {
+    _Cache.imgSrc = imgSrc;
+    _Cache.cycle = cycle;
+};
+
+const clearCache = function() {
+    _Cache.imgSrc = '';
+    _Cache.cycle = [];
+};
 
 // algorithm
 
 const compute = function(ctx) {
 
     const state = State.get();
-    const { step, imgSrc } = state;
+    const { imgSrc } = state;
+    let cycle = getCache(imgSrc);
 
-    const cached = hasCache(imgSrc, step);
+    State.set({
+        step: 0,
+        targetStep: 0,
+        reversingAt: 0,
+        running: false,
+    });// reset
 
-    if (cached) {
-        return Promise.resolve(getCache(imgSrc, step));
+    if (cycle) {
+        document.dispatchEvent(ComputedEvent);
+        State.set({
+            reversingAt: cycle.length - 1,
+        });// reset
+        return Promise.resolve(cycle);
     }
 
     const { width, height } = ctx.canvas;
     const pixelData = ctx.getImageData(0, 0, width, height).data;
-
-    if (step === 0) {
-        originalPixelData = pixelData;
-    }
     const id = performance.now();
+
+    contextHelper(ctx).progress('computing..', 'rgba(255,255,255,1)', 'rgba(0,0,0,.9)');
 
     return new Promise((resolve, reject) => {
 
@@ -83,8 +89,14 @@ const compute = function(ctx) {
                 return;
             }
 
-            setCache(imgSrc, step, e.data.pixelData);
-            resolve(e.data.pixelData);
+            ({ cycle } = e.data);
+            State.set({
+                reversingAt: cycle.length - 1,
+            });// reset
+
+            setCache(imgSrc, cycle);
+            document.dispatchEvent(ComputedEvent);
+            resolve(cycle);
         });
 
         worker.addEventListener('error', (error) => {
@@ -97,51 +109,33 @@ const compute = function(ctx) {
             width,
             height,
             pixelData,
-            originalPixelData,
-            restored: false, // always
         });
     });
 
 };
 
-const hasNextLoop = function(targetStep, step, restored) {
-    if (targetStep <= 0 && !restored) {
-        return true;
-    }
-    if (step < targetStep - 1 && !restored) {
-        return true;
-    }
-    return false;
-};
-
-const update = function(ctx, pixelData) {
-    const { step, interval, targetStep } = State.get();
+const update = function(ctx, cycle) {
+    const { step, targetStep, paused } = State.get();
     const { width, height } = ctx.canvas;
-    const { next, restored } = pixelData;
+
+    if (paused) { // set by component
+        return;
+    }
+
+    const next = cycle[step];
 
     const imageData = ctx.getImageData(0, 0, width, height);
 
     imageData.data.set(next);
     ctx.putImageData(imageData, 0, 0);
 
-    if (restored) {
-        // if (typeof window.performance.memory !== 'undefined') {
-        //     console.log(window.performance.memory);
-        // }
-        // set reverse point
-        State.set({ reversingAt: step });
+    if (step < targetStep) {
+        State.set({
+            step: step + 1,
+        });
     }
 
-    const nextLoop = hasNextLoop(targetStep, step, restored);
-
-    if (nextLoop) {
-        setTimeout(() => compute(ctx)
-            .then(pixels => update(ctx, pixels)), interval);
-    }
-
-    State.set({ step: step + 1 });
-
-    document.dispatchEvent(UpdateEvent);
+    document.dispatchEvent(UpdatedEvent);
 };
 
 // plotting
@@ -151,7 +145,10 @@ const loadImage = function(imgSrc, ctx) {
         const img = new Image();
         img.src = imgSrc;
         img.onload = function() {
-            const squared = (this.width > this.height) ? this.height : this.width;
+            const { width, height } = this;
+
+            // cat map only restores on quadratic canvas
+            const squared = (width > height) ? height : width;
             ctx.canvas.width = squared;
             ctx.canvas.height = squared;
 
@@ -171,20 +168,23 @@ const plot = function(ctx) {
         .progress('computing..', '#ff0000');
 
     const { imgSrc } = State.get();
-    State.set({
-        step: 0,
-    });// reset counter
 
-    const cached = hasCache(imgSrc);
-    if (cached) {
+    // cached cycle
+    if (hasCache(imgSrc)) {
         return compute(ctx)
-            .then(pixelData => update(ctx, pixelData));
+            .then(cycle => update(ctx, cycle));
     }
-
-    initCache(imgSrc);
+    animation.stop();
+    // new cycle
+    clearCache();
     return loadImage(imgSrc, ctx)
         .then(() => compute(ctx))
-        .then(pixelData => update(ctx, pixelData));
+        .then((cycle) => {
+            animation
+                .throttle(State.get().interval)
+                .assign(() => update(ctx, cycle))
+                .play();
+        });
 };
 
 const init = function(container = document.body) {
@@ -193,10 +193,12 @@ const init = function(container = document.body) {
     const { imgSrc } = State.get();
 
     animation.stop();
+    clearCache();
     loadImage(imgSrc, ctx);
 
     return {
         getState: State.get,
+        setState: State.set,
         reset: () => {
             State.reset();
             plot(ctx);
@@ -204,6 +206,45 @@ const init = function(container = document.body) {
         plot: (updates) => {
             State.set(updates);
             plot(ctx);
+        },
+        pause: () => {
+            State.set({ paused: !State.get().paused });
+        },
+        play: (start, end) => {
+            const cycle = getCache(State.get().imgSrc);
+            if (!cycle) {
+                return;
+            }
+            State.set({
+                step: start || 0,
+                targetStep: end || State.get().reversingAt,
+                paused: false,
+            });
+            update(ctx, cycle);
+        },
+        progress: (direction) => {
+            const { reversingAt, step } = State.get();
+            let next;
+
+            const cycle = getCache(State.get().imgSrc);
+            if (!cycle) {
+                return;
+            }
+
+            next = step + direction;
+            if (next >= reversingAt) {
+                next = reversingAt;
+            }
+            if (next < 0) {
+                next = 0;
+            }
+
+            State.set({
+                step: next,
+                targetStep: next,
+                paused: false,
+            });
+            update(ctx, cycle);
         },
     };
 };
