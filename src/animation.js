@@ -29,7 +29,6 @@ class Animation {
 
     assign(fn) {
         this.callback = fn;
-        console.log(this.callback);
         return this;
     }
 
