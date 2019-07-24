@@ -49,10 +49,10 @@ const cycle = function(state, width, height, pixelData, notify) {
     let frame;
     let prevPixelData = pixelData;
 
-    while(!restored) {
+    while (!restored) {
         frame = step(state, width, height, prevPixelData, pixelData);
 
-        restored = frame.restored;
+        ({ restored } = frame.restored);
         prevPixelData = frame.pixelData;
 
         frames.push(frame.pixelData);

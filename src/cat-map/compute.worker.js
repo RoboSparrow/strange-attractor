@@ -3,7 +3,7 @@ import compute from './compute';
 
 
 onmessage = function(e) {
-    const { id, state, width, height, pixelData} = e.data;
+    const { id, state, width, height, pixelData } = e.data;
     const cycle = compute.cycle(state, width, height, pixelData);
 
     postMessage({
