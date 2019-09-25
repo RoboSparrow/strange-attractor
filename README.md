@@ -10,4 +10,4 @@ Inspired by
 * [mrdoobs strange attractor example](https://mrdoob.com/#/107/strange_attractor)
 * [Wolfram MathWorld](http://mathworld.wolfram.com)
 
-Driven by [mithril.js](https://mithril.js.org/) and [MUI](https://www.muicss.com/)
+Powered by [mithril.js](https://mithril.js.org/) and [MUI](https://www.muicss.com/)
