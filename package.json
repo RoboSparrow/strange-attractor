@@ -2,7 +2,7 @@
   "name": "strange-attractor",
   "version": "0.0.2",
   "description": "Playing with Matrix4x4 and attractor algorithms.",
-  "homepage" : "http://robosparrow.github.io/strange-attractor",
+  "homepage": "http://robosparrow.github.io/strange-attractor",
   "devDependencies": {
     "chai": "^4.2.0",
     "clean-webpack-plugin": "^0.1.19",
@@ -27,7 +27,7 @@
     "worker-loader": "^2.0.0"
   },
   "dependencies": {
-    "mithril": "^1.1.6",
+    "mithril": "^1.1.7",
     "muicss": "^0.9.42"
   },
   "scripts": {
