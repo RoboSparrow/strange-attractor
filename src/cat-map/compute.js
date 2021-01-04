@@ -52,6 +52,7 @@ const cycle = function(state, width, height, pixelData, notify) {
     while (!restored) {
         frame = step(state, width, height, prevPixelData, pixelData);
 
+        // eslint-disable-next-line prefer-destructuring
         restored = frame.restored;
         prevPixelData = frame.pixelData;
 
