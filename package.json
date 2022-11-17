@@ -7,7 +7,7 @@
     "chai": "^4.2.0",
     "clean-webpack-plugin": "^0.1.19",
     "cross-env": "^5.2.0",
-    "css-loader": "^1.0.1",
+    "css-loader": "^6.7.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
     "eslint-loader": "^2.2.1",
@@ -23,7 +23,7 @@
     "style-loader": "^0.23.1",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.3",
+    "webpack-dev-server": "^4.11.1",
     "worker-loader": "^2.0.0"
   },
   "dependencies": {
